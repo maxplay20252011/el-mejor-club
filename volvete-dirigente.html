@@ -40,6 +40,10 @@
   .verifThumb svg{width:48px;height:auto;display:block;transition:width .15s;}
   .verifThumb:hover svg{width:150px;}
   #verifReport{margin-top:10px;font-size:.8rem;color:var(--muted);white-space:pre-wrap;}
+  .gItem{position:relative;background:#0b0e13;border:1px solid #2a3140;border-radius:8px;padding:6px;cursor:pointer;}
+  .gItem svg{width:70px;height:auto;display:block;}
+  .gItem .del{position:absolute;top:2px;right:4px;background:none;border:none;color:var(--muted);font-size:1rem;margin:0;padding:0 2px;cursor:pointer;}
+  .gItem .del:hover{color:var(--warn);}
   .pill{display:inline-block;background:#232a38;border:1px solid #37425a;border-radius:20px;padding:3px 10px;font-size:.68rem;color:var(--muted);margin:2px 3px 0 0;}
 </style>
 </head>
@@ -116,16 +120,31 @@
 
     <div class="row2">
       <div>
-        <label for="chkAnio">Año de fundación (ficticio)</label>
-        <select id="chkAnio"></select>
+        <label for="chkAnio">Año ficticio (4 dígitos, opcional)</label>
+        <input type="text" id="chkAnio" maxlength="4" inputmode="numeric" placeholder="ej. 1923">
       </div>
       <div>
-        <label for="selLema">Lema / cinta</label>
+        <label for="selLema">Lema (cinta)</label>
         <select id="selLema"></select>
       </div>
     </div>
 
+    <div class="row2">
+      <div>
+        <label for="inpNombre">Nombre del club (cinta)</label>
+        <input type="text" id="inpNombre" maxlength="22" placeholder="ej. Club Atlético Norte">
+      </div>
+      <div>
+        <label for="selVariante">Variante de ornamento</label>
+        <select id="selVariante"></select>
+      </div>
+    </div>
+
     <button class="btn-save" id="btnGuardar">💾 Guardar escudo</button>
+    <div class="row2">
+      <button class="btn-ghost" id="btnSvg">⬇ SVG</button>
+      <button class="btn-ghost" id="btnPng">⬇ PNG</button>
+    </div>
     <div class="warn-box" id="warnBox">⚠ Esta combinación se parece mucho a un club existente. Probá cambiar algún color o pieza antes de guardar.</div>
     <div class="ok-box" id="okBox">✔ Escudo guardado.</div>
 
@@ -138,6 +157,10 @@
       <div id="crestPreview"></div>
       <div id="crestLabel" style="font-size:.75rem;color:var(--muted);"></div>
     </div>
+
+    <h2 style="margin-top:22px;">Escudos guardados</h2>
+    <div id="galeria" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+    <div id="galeriaVacia" style="font-size:.8rem;color:var(--muted);">Todavía no guardaste ninguno.</div>
 
     <h2 style="margin-top:22px;">Verificación (sección 8 del prompt)</h2>
     <button class="btn-ghost" id="btnVerif">▶ Ejecutar verificación (40 escudos + 500 simulaciones)</button>
@@ -562,7 +585,7 @@ function buildCrestSVG(p){
       ${anioMarkup(p.anio, ordHex || '#1a1a1a')}
     </g>
     <path d="${shapeD}" fill="none" stroke="#1a1a1a" stroke-width="3"/>
-    ${ribbonMarkup(p.lema || '', '#e8d9a8')}
+    ${ribbonMarkup(p.nombre || p.lema || '', '#e8d9a8')}
   </svg>`;
 }
 
@@ -655,6 +678,8 @@ const els = {
   ornamento: document.getElementById('selOrnamento'),
   anio: document.getElementById('chkAnio'),
   lema: document.getElementById('selLema'),
+  nombre: document.getElementById('inpNombre'),
+  variante: document.getElementById('selVariante'),
 };
 
 fillSelect(els.pais, PAISES.map(p=>p.code), code => PAISES.find(p=>p.code===code).nombre);
@@ -668,7 +693,7 @@ fillSelect(els.charge, CHARGES, id => CHARGE_LABEL[id]);
 fillSelect(els.chargeT, ALL_TINCTURES, id => TINCTURE_LABEL[id]);
 fillSelect(els.stars, [0,1,2,3,4,5], n => n + ' estrella(s)');
 fillSelect(els.ornamento, ['ninguno','corona','laurel'], id => id==='ninguno'?'Ninguno':(id==='corona'?'Corona':'Laurel'));
-fillSelect(els.anio, ['no','si'], id => id==='no' ? 'Sin año' : 'Con año ficticio');
+fillSelect(els.variante, [0,1], n => 'Variante ' + (n+1));
 fillSelect(els.lema, ['ninguno', ...LEMAS_INVENTADOS], id => id==='ninguno' ? 'Sin lema' : id);
 
 function crestDesdeFormulario(){
@@ -683,13 +708,13 @@ function crestDesdeFormulario(){
     chargeId: els.charge.value,
     chargeTincture: CHARGE_NATURAL[els.charge.value] ? null : els.chargeT.value,
     stars: Number(els.stars.value),
-    ornamento, ornamentoVariante: 0,
-    ornamentoTincture: ornamento ? TINCTURE_HEX_TO_ID('#d8b45a') : null,
-    anio: els.anio.value === 'si' ? anioFicticio() : null,
+    ornamento, ornamentoVariante: Number(els.variante.value),
+    ornamentoTincture: ornamento ? 'oro' : null,
+    anio: /^\d{4}$/.test(els.anio.value.trim()) ? els.anio.value.trim() : null,
     lema: els.lema.value === 'ninguno' ? null : els.lema.value,
+    nombre: els.nombre.value.trim() || null,
   };
 }
-function TINCTURE_HEX_TO_ID(){ return 'oro'; }
 
 function pintarFormularioDesdeCrest(c){
   els.shape.value = c.shapeId;
@@ -702,9 +727,10 @@ function pintarFormularioDesdeCrest(c){
   if(c.chargeTincture) els.chargeT.value = c.chargeTincture;
   els.stars.value = String(c.stars||0);
   els.ornamento.value = c.ornamento || 'ninguno';
-  els.anio.value = c.anio ? 'si' : 'no';
+  els.anio.value = c.anio || '';
   els.lema.value = c.lema || 'ninguno';
-  if(c.anio) els._anioFijo = c.anio;
+  els.variante.value = String(c.ornamentoVariante || 0);
+  if(c.nombre !== undefined) els.nombre.value = c.nombre || '';
 }
 
 function renderPreview(c){
@@ -715,20 +741,20 @@ function renderPreview(c){
 }
 
 function rerenderDesdeFormulario(){
-  const c = crestDesdeFormulario();
-  if(els._anioFijo && els.anio.value==='si') c.anio = els._anioFijo;
-  renderPreview(c);
+  renderPreview(crestDesdeFormulario());
   document.getElementById('warnBox').classList.remove('show');
   document.getElementById('okBox').classList.remove('show');
 }
 
 [els.shape, els.field, els.division, els.division2, els.ordinary, els.ordinaryT,
- els.charge, els.chargeT, els.stars, els.ornamento, els.anio, els.lema].forEach(sel => {
+ els.charge, els.chargeT, els.stars, els.ornamento, els.lema, els.variante].forEach(sel => {
   sel.addEventListener('change', rerenderDesdeFormulario);
 });
+[els.anio, els.nombre].forEach(inp => inp.addEventListener('input', rerenderDesdeFormulario));
 
 document.getElementById('btnRandom').addEventListener('click', () => {
   const c = randomCrest(els.pais.value);
+  c.nombre = els.nombre.value.trim() || null;
   pintarFormularioDesdeCrest(c);
   renderPreview(c);
   document.getElementById('warnBox').classList.remove('show');
@@ -737,17 +763,72 @@ document.getElementById('btnRandom').addEventListener('click', () => {
 
 document.getElementById('btnGuardar').addEventListener('click', () => {
   const c = crestDesdeFormulario();
-  if(els._anioFijo && els.anio.value==='si') c.anio = els._anioFijo;
   const bloqueado = matchesBloqueo(c, BLOQUEO_IDENTIDAD);
   document.getElementById('warnBox').classList.toggle('show', bloqueado);
   document.getElementById('okBox').classList.toggle('show', !bloqueado);
   if(!bloqueado){
-    try{
-      const guardados = JSON.parse(localStorage.getItem('escudosGuardados')||'[]');
-      guardados.push(c);
-      localStorage.setItem('escudosGuardados', JSON.stringify(guardados));
-    }catch(e){}
+    const lista = leerGuardados();
+    lista.push(c);
+    escribirGuardados(lista);
+    pintarGaleria();
   }
+});
+
+let guardadosEnMemoria = [];
+function leerGuardados(){
+  try{ return JSON.parse(localStorage.getItem('escudosGuardados')||'[]'); }
+  catch(e){ return guardadosEnMemoria; }
+}
+function escribirGuardados(lista){
+  guardadosEnMemoria = lista;
+  try{ localStorage.setItem('escudosGuardados', JSON.stringify(lista)); }catch(e){}
+}
+function pintarGaleria(){
+  const lista = leerGuardados();
+  const cont = document.getElementById('galeria');
+  cont.innerHTML = '';
+  document.getElementById('galeriaVacia').style.display = lista.length ? 'none' : 'block';
+  lista.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'gItem';
+    d.title = c.nombre || 'Escudo ' + (i+1);
+    d.innerHTML = buildCrestSVG(c) + '<button class="del" title="Borrar">×</button>';
+    d.addEventListener('click', () => { pintarFormularioDesdeCrest(c); renderPreview(c); });
+    d.querySelector('.del').addEventListener('click', ev => {
+      ev.stopPropagation();
+      const l = leerGuardados(); l.splice(i, 1); escribirGuardados(l); pintarGaleria();
+    });
+    cont.appendChild(d);
+  });
+}
+
+function svgActual(){
+  const svg = document.querySelector('#crestPreview svg').cloneNode(true);
+  svg.setAttribute('width', '600');
+  svg.setAttribute('height', '960');
+  return new XMLSerializer().serializeToString(svg);
+}
+function descargar(blob, nombre){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+document.getElementById('btnSvg').addEventListener('click', () => {
+  descargar(new Blob([svgActual()], {type:'image/svg+xml'}), 'escudo.svg');
+});
+document.getElementById('btnPng').addEventListener('click', () => {
+  const url = URL.createObjectURL(new Blob([svgActual()], {type:'image/svg+xml'}));
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement('canvas');
+    cv.width = 600; cv.height = 960;
+    cv.getContext('2d').drawImage(img, 0, 0, 600, 960);
+    cv.toBlob(b => descargar(b, 'escudo.png'));
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
 });
 
 document.getElementById('btnVerif').addEventListener('click', ejecutarVerificacion);
@@ -791,6 +872,7 @@ function ejecutarVerificacion(){
 })();
 
 (function iniciar(){
+  pintarGaleria();
   const c = randomCrest('AR');
   pintarFormularioDesdeCrest(c);
   renderPreview(c);
