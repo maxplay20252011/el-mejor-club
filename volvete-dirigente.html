@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volvete Dirigente — Motor de Escudos v2</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171b22; --panel2:#1e2430; --gold:#d8b45a; --text:#e8e4d8;
+    --muted:#9aa3b2; --accent:#4fb5e0; --warn:#e07a1f; --ok:#3ddc84;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;}
+  header{padding:18px 24px;border-bottom:1px solid #2a3140;background:linear-gradient(180deg,#171b22,#0e1116);}
+  header h1{margin:0 0 4px;font-size:1.6rem;color:var(--gold);letter-spacing:.5px;}
+  header p{margin:0;color:var(--muted);font-size:.85rem;max-width:860px;line-height:1.5;}
+  main{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:20px;max-width:1400px;margin:0 auto;}
+  @media (max-width:900px){ main{grid-template-columns:1fr;} }
+  section{background:var(--panel);border:1px solid #2a3140;border-radius:12px;padding:16px;}
+  h2{margin:0 0 12px;font-size:1.05rem;color:var(--accent);}
+  label{display:block;font-size:.72rem;color:var(--muted);margin:10px 0 3px;text-transform:uppercase;letter-spacing:.5px;}
+  select,input[type=text]{width:100%;background:var(--panel2);color:var(--text);border:1px solid #2a3140;border-radius:6px;padding:7px 8px;font-family:inherit;font-size:.85rem;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:10px 14px;font-weight:700;font-size:.85rem;margin-top:10px;}
+  .btn-main{background:linear-gradient(135deg,#f0d98a,var(--gold) 60%,#a8790a);color:#241a00;width:100%;}
+  .btn-ghost{background:#232a38;color:var(--text);border:1px solid #37425a;width:100%;}
+  .btn-save{background:linear-gradient(135deg,#7adfb0,var(--ok) 60%,#1f8a55);color:#042014;width:100%;}
+  .preview-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  #crestPreview{width:min(340px,100%);}
+  #crestPreview svg{width:100%;height:auto;display:block;}
+  .warn-box{display:none;background:#2a1a10;border:1px solid var(--warn);color:#ffcf9a;border-radius:8px;padding:10px 12px;font-size:.8rem;margin-top:10px;}
+  .warn-box.show{display:block;}
+  .ok-box{display:none;background:#102a1a;border:1px solid var(--ok);color:#b6ffd8;border-radius:8px;padding:10px 12px;font-size:.8rem;margin-top:10px;}
+  .ok-box.show{display:block;}
+  .catalogo{font-size:.72rem;color:var(--muted);line-height:1.7;margin-top:8px;}
+  .catalogo b{color:var(--text);}
+  footer{padding:16px 24px;color:var(--muted);font-size:.72rem;max-width:1400px;margin:0 auto;line-height:1.6;}
+  #verifGrid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  .verifThumb{background:#0b0e13;border:1px solid #2a3140;border-radius:6px;padding:4px;}
+  .verifThumb svg{width:48px;height:auto;display:block;transition:width .15s;}
+  .verifThumb:hover svg{width:150px;}
+  #verifReport{margin-top:10px;font-size:.8rem;color:var(--muted);white-space:pre-wrap;}
+  .pill{display:inline-block;background:#232a38;border:1px solid #37425a;border-radius:20px;padding:3px 10px;font-size:.68rem;color:var(--muted);margin:2px 3px 0 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Volvete Dirigente — Motor de Escudos v2</h1>
+  <p>Generador de escudos heráldicos para el juego. Combina vocabulario genérico (formas, tinturas, divisiones, ordinarias, cargas, cintas y ornamentos) y nunca reproduce la identidad distintiva de un club real: una validación interna (<b>BLOQUEO_IDENTIDAD</b>) descarta automáticamente combinaciones demasiado parecidas.</p>
+</header>
+
+<main>
+  <section id="panelEditor">
+    <h2>Editor manual</h2>
+
+    <label for="selPais">País (define el &quot;tema&quot; de generación aleatoria)</label>
+    <select id="selPais"></select>
+
+    <button class="btn-main" id="btnRandom">🎲 Generar aleatorio</button>
+
+    <div class="row2">
+      <div>
+        <label for="selShape">Forma</label>
+        <select id="selShape"></select>
+      </div>
+      <div>
+        <label for="selField">Tintura de campo</label>
+        <select id="selField"></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label for="selDivision">División</label>
+        <select id="selDivision"></select>
+      </div>
+      <div>
+        <label for="selDivision2">Tintura 2 (división)</label>
+        <select id="selDivision2"></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label for="selOrdinary">Ordinaria</label>
+        <select id="selOrdinary"></select>
+      </div>
+      <div>
+        <label for="selOrdinaryT">Tintura ordinaria</label>
+        <select id="selOrdinaryT"></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label for="selCharge">Carga central</label>
+        <select id="selCharge"></select>
+      </div>
+      <div>
+        <label for="selChargeT">Tintura carga</label>
+        <select id="selChargeT"></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label for="selStars">Estrellas</label>
+        <select id="selStars"></select>
+      </div>
+      <div>
+        <label for="selOrnamento">Ornamento</label>
+        <select id="selOrnamento"></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label for="chkAnio">Año de fundación (ficticio)</label>
+        <select id="chkAnio"></select>
+      </div>
+      <div>
+        <label for="selLema">Lema / cinta</label>
+        <select id="selLema"></select>
+      </div>
+    </div>
+
+    <button class="btn-save" id="btnGuardar">💾 Guardar escudo</button>
+    <div class="warn-box" id="warnBox">⚠ Esta combinación se parece mucho a un club existente. Probá cambiar algún color o pieza antes de guardar.</div>
+    <div class="ok-box" id="okBox">✔ Escudo guardado.</div>
+
+    <div class="catalogo" id="catalogoInfo"></div>
+  </section>
+
+  <section>
+    <h2>Vista previa</h2>
+    <div class="preview-wrap">
+      <div id="crestPreview"></div>
+      <div id="crestLabel" style="font-size:.75rem;color:var(--muted);"></div>
+    </div>
+
+    <h2 style="margin-top:22px;">Verificación (sección 8 del prompt)</h2>
+    <button class="btn-ghost" id="btnVerif">▶ Ejecutar verificación (40 escudos + 500 simulaciones)</button>
+    <div id="verifReport"></div>
+    <div id="verifGrid"></div>
+  </section>
+</main>
+
+<footer>
+  Disclaimer: este generador crea escudos ficticios combinando vocabulario heráldico genérico de uso común en la industria
+  (formas, tinturas y figuras genéricas). No representa, copia ni reproduce el escudo de ningún club real.
+  La protección legal de un escudo recae en la combinación distintiva concreta (forma + colores + carga + layout), no en
+  el vocabulario genérico recombinado — mismo criterio que usó la industria en casos como Manchester United v. Sega/Sports
+  Interactive (2020, Football Manager) o el renombrado de clubes sin licencia en EA Sports FC.
+</footer>
+
+<script>
+/* ===================== 1. Vocabulario heráldico ===================== */
+
+const TINCTURES = {
+  metals: ['oro','plata'],
+  colors: ['rojo','azul','verde','negro','purpura','celeste','teal','naranja'],
+};
+const ALL_TINCTURES = [...TINCTURES.metals, ...TINCTURES.colors];
+const TINCTURE_HEX = {
+  oro:'#d4af37', plata:'#e8e8e8', rojo:'#c8102e', azul:'#1f4e99', verde:'#1b7a3d',
+  negro:'#1a1a1a', purpura:'#6a2c70', celeste:'#4fb5e0', teal:'#0e8c7f', naranja:'#e07a1f',
+};
+const TINCTURE_LABEL = {
+  oro:'Oro', plata:'Plata', rojo:'Rojo', azul:'Azul', verde:'Verde', negro:'Negro',
+  purpura:'Púrpura', celeste:'Celeste', teal:'Teal', naranja:'Naranja',
+};
+
+const SHAPES = ['heater','espanol','ovalo','circulo','diamante','puntas','polaco','rombo_alargado'];
+const SHAPE_LABEL = {
+  heater:'Heater', espanol:'Español', ovalo:'Óvalo', circulo:'Círculo', diamante:'Diamante',
+  puntas:'Puntas', polaco:'Polaco (piel de toro)', rombo_alargado:'Rombo alargado',
+};
+
+const DIVISIONS = ['ninguna','per_pale','per_fess','per_bend','quarterly','per_saltire'];
+const DIVISION_LABEL = {
+  ninguna:'Ninguna', per_pale:'Partido (per pale)', per_fess:'Cortado (per fess)',
+  per_bend:'Tajado (per bend)', quarterly:'Cuartelado', per_saltire:'Aspado',
+};
+
+const ORDINARIES = ['ninguna','palo','faja','banda','barra','cruz','aspa','cabria','bordura'];
+const ORDINARY_LABEL = {
+  ninguna:'Ninguna', palo:'Palo', faja:'Faja', banda:'Banda', barra:'Barra',
+  cruz:'Cruz', aspa:'Aspa', cabria:'Cabria (chevron)', bordura:'Bordura',
+};
+
+const CHARGES = [
+  'estrella','sol','luna','leon','aguila','toro','caballo','ciervo','lobo','oso',
+  'pez','serpiente','torre','espada','corazon','mano','llave','monograma',
+  'ancla','remo','timon','herramienta',
+  'fauna_condor','fauna_yacare','fauna_zorro','fauna_guanaco',
+  'flora_ceibo','flora_trigo','flora_vid','flora_algarrobo',
+];
+const CHARGE_LABEL = {
+  estrella:'Estrella', sol:'Sol', luna:'Luna', leon:'León', aguila:'Águila', toro:'Toro',
+  caballo:'Caballo', ciervo:'Ciervo', lobo:'Lobo', oso:'Oso', pez:'Pez', serpiente:'Serpiente',
+  torre:'Torre', espada:'Espada', corazon:'Corazón', mano:'Mano', llave:'Llave', monograma:'Monograma (3 letras)',
+  ancla:'Ancla', remo:'Remo', timon:'Timón', herramienta:'Herramienta de oficio',
+  fauna_condor:'Cóndor (fauna regional)', fauna_yacare:'Yacaré (fauna regional)',
+  fauna_zorro:'Zorro (fauna regional)', fauna_guanaco:'Guanaco (fauna regional)',
+  flora_ceibo:'Flor de ceibo (flora regional)', flora_trigo:'Trigo (flora regional)',
+  flora_vid:'Vid (flora regional)', flora_algarrobo:'Algarrobo (flora regional)',
+};
+const CHARGE_NATURAL = { fauna_condor:true, fauna_yacare:true, fauna_zorro:true, fauna_guanaco:true };
+
+const LEMAS_INVENTADOS = [
+  'Fortis et Fidelis','Semper Ad Astra','Virtus Vincit Omnia','Honor Ante Omnia','Ad Victoriam Semper',
+  'Fide et Labore','Unitas Facit Robur','Gloria Non Moritur','Per Aspera Ad Gloriam','Labor Omnia Superat Nostra',
+];
+
+/* ===================== 2. Países y packs regionales ===================== */
+
+const PAISES = [
+  {code:'AR', nombre:'Argentina', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'celeste'},
+  {code:'UY', nombre:'Uruguay', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'celeste'},
+  {code:'PY', nombre:'Paraguay', geoTag:['sudamerica','rural'], culturalTag:['agricola'], colorBandera:'rojo'},
+  {code:'BR', nombre:'Brasil', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'verde'},
+  {code:'CL', nombre:'Chile', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'rojo'},
+  {code:'BO', nombre:'Bolivia', geoTag:['sudamerica','rural'], culturalTag:['agricola'], colorBandera:'rojo'},
+  {code:'PE', nombre:'Perú', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'rojo'},
+  {code:'EC', nombre:'Ecuador', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'oro'},
+  {code:'CO', nombre:'Colombia', geoTag:['sudamerica','costero'], culturalTag:[], colorBandera:'oro'},
+  {code:'VE', nombre:'Venezuela', geoTag:['sudamerica','costero','portuario'], culturalTag:[], colorBandera:'oro'},
+  {code:'MX', nombre:'México', geoTag:['norteamerica','costero'], culturalTag:[], colorBandera:'verde'},
+  {code:'US', nombre:'Estados Unidos', geoTag:['norteamerica'], culturalTag:[], colorBandera:'azul'},
+  {code:'CA', nombre:'Canadá', geoTag:['norteamerica'], culturalTag:[], colorBandera:'rojo'},
+  {code:'JM', nombre:'Jamaica', geoTag:['caribe','costero'], culturalTag:[], colorBandera:'verde'},
+  {code:'CU', nombre:'Cuba', geoTag:['caribe','costero'], culturalTag:[], colorBandera:'rojo'},
+  {code:'DO', nombre:'Rep. Dominicana', geoTag:['caribe','costero'], culturalTag:[], colorBandera:'azul'},
+  {code:'ES', nombre:'España', geoTag:['costero'], culturalTag:[], colorBandera:'rojo'},
+  {code:'PT', nombre:'Portugal', geoTag:['costero','portuario'], culturalTag:[], colorBandera:'verde'},
+  {code:'FR', nombre:'Francia', geoTag:['costero'], culturalTag:[], colorBandera:'azul'},
+  {code:'IT', nombre:'Italia', geoTag:['costero'], culturalTag:[], colorBandera:'verde'},
+  {code:'DE', nombre:'Alemania', geoTag:['rural'], culturalTag:['agricola'], colorBandera:'negro'},
+  {code:'NL', nombre:'Países Bajos', geoTag:['costero','portuario'], culturalTag:[], colorBandera:'naranja'},
+  {code:'GB', nombre:'Inglaterra', geoTag:['costero'], culturalTag:['tradicion_britanica'], colorBandera:'rojo'},
+  {code:'SCT', nombre:'Escocia', geoTag:['costero'], culturalTag:['tradicion_britanica'], colorBandera:'azul'},
+  {code:'IE', nombre:'Irlanda', geoTag:['costero','rural'], culturalTag:['tradicion_britanica','agricola'], colorBandera:'verde'},
+  {code:'JP', nombre:'Japón', geoTag:['costero'], culturalTag:[], colorBandera:'rojo'},
+  {code:'ZA', nombre:'Sudáfrica', geoTag:['costero'], culturalTag:[], colorBandera:'verde'},
+  {code:'AU', nombre:'Australia', geoTag:['costero'], culturalTag:['tradicion_britanica'], colorBandera:'azul'},
+];
+
+const GEO_CARGA = {
+  costero:['ancla','remo','timon','pez'],
+  portuario:['ancla','remo','timon','herramienta'],
+  rural:['flora_trigo','flora_vid','flora_algarrobo','toro'],
+  sudamerica:['fauna_condor','fauna_guanaco','flora_ceibo'],
+  norteamerica:['aguila','estrella'],
+  caribe:['sol','pez'],
+};
+const CULT_CARGA = {
+  agricola:['flora_trigo','flora_vid','flora_algarrobo'],
+  tradicion_britanica:['leon','espada','torre'],
+};
+
+// Pesos de sesgo por tema (sección 2). pesarCatalogoPorTema() los devuelve sin tocar randomCrest en sí.
+const TEMAS = {
+  argentino_clasico: { ordinaries:{palo:3}, fieldFromBandera:true, starsDefault:1, charges:{monograma:2} },
+  portuario_obrero: { charges:{ancla:4, remo:4, timon:4, herramienta:4} },
+  provincial_rural: { charges:{flora_trigo:3, flora_vid:3, flora_algarrobo:3, fauna_guanaco:3, fauna_zorro:3} },
+  retro_con_lema: { shapes:{heater:3}, ordinaries:{cabria:3}, ornamentoForzado:'corona', lemaForzado:true },
+  logo_mascota: { shapes:{ovalo:4, circulo:4}, ordinaryForzadoNinguna:true },
+};
+
+function elegirTemaPorPais(paisCode){
+  const pais = PAISES.find(p => p.code === paisCode);
+  if(!pais) return null;
+  if(paisCode === 'AR' || pais.geoTag.includes('sudamerica')) return 'argentino_clasico';
+  if(pais.geoTag.includes('costero') || pais.geoTag.includes('portuario')) return 'portuario_obrero';
+  if(pais.geoTag.includes('rural') || pais.culturalTag.includes('agricola')) return 'provincial_rural';
+  if(pais.culturalTag.includes('tradicion_britanica')) return 'retro_con_lema';
+  if(pais.geoTag.includes('norteamerica') || pais.geoTag.includes('caribe')) return 'logo_mascota';
+  return null;
+}
+function pesarCatalogoPorTema(paisCode){
+  const temaId = elegirTemaPorPais(paisCode);
+  return { temaId, pesos: temaId ? TEMAS[temaId] : null };
+}
+function colorDeBanderaTincture(paisCode){
+  const pais = PAISES.find(p => p.code === paisCode);
+  return pais ? pais.colorBandera : null;
+}
+
+/* ===================== 3. Clubes reales (solo para armar BLOQUEO_IDENTIDAD) =====================
+   Colores reales documentados públicamente, usados únicamente para detectar y evitar
+   combinaciones demasiado parecidas. El crest generado nunca usa esta tabla para dibujar. */
+
+const CLUBES = [
+  {nombre:'River Plate', primario:'plata', secundario:'rojo'},
+  {nombre:'Boca Juniors', primario:'azul', secundario:'oro'},
+  {nombre:'Racing Club', primario:'celeste', secundario:'plata'},
+  {nombre:'Independiente', primario:'rojo', secundario:'plata'},
+  {nombre:'San Lorenzo', primario:'azul', secundario:'rojo'},
+  {nombre:'Estudiantes de La Plata', primario:'plata', secundario:'rojo'},
+  {nombre:'Gimnasia y Esgrima La Plata', primario:'azul', secundario:'plata'},
+  {nombre:'Vélez Sarsfield', primario:'plata', secundario:'azul'},
+  {nombre:'Huracán', primario:'plata', secundario:'rojo'},
+  {nombre:'Newells Old Boys', primario:'rojo', secundario:'negro'},
+  {nombre:'Rosario Central', primario:'azul', secundario:'oro'},
+  {nombre:'Talleres de Córdoba', primario:'azul', secundario:'plata'},
+  {nombre:'Belgrano', primario:'celeste', secundario:'plata'},
+  {nombre:'Lanús', primario:'purpura', secundario:'negro'},
+  {nombre:'Banfield', primario:'verde', secundario:'plata'},
+  {nombre:'Argentinos Juniors', primario:'rojo', secundario:'plata'},
+  {nombre:'Platense', primario:'celeste', secundario:'purpura'},
+  {nombre:'Tigre', primario:'azul', secundario:'rojo'},
+  {nombre:'Colón', primario:'rojo', secundario:'negro'},
+  {nombre:'Unión de Santa Fe', primario:'rojo', secundario:'plata'},
+  {nombre:'Defensa y Justicia', primario:'verde', secundario:'purpura'},
+  {nombre:'Godoy Cruz', primario:'azul', secundario:'plata'},
+  {nombre:'Barracas Central', primario:'plata', secundario:'celeste'},
+  {nombre:'Central Córdoba SdE', primario:'negro', secundario:'plata'},
+  {nombre:'Sarmiento de Junín', primario:'verde', secundario:'plata'},
+  {nombre:'Barcelona', primario:'azul', secundario:'purpura'},
+  {nombre:'Real Madrid', primario:'plata', secundario:'oro'},
+  {nombre:'Atlético de Madrid', primario:'rojo', secundario:'plata'},
+  {nombre:'Manchester United', primario:'rojo', secundario:'negro'},
+  {nombre:'Manchester City', primario:'celeste', secundario:'plata'},
+  {nombre:'Liverpool', primario:'rojo', secundario:'oro'},
+  {nombre:'Chelsea', primario:'azul', secundario:'plata'},
+  {nombre:'Arsenal', primario:'rojo', secundario:'plata'},
+  {nombre:'Juventus', primario:'plata', secundario:'negro'},
+  {nombre:'AC Milan', primario:'rojo', secundario:'negro'},
+  {nombre:'Inter de Milán', primario:'azul', secundario:'negro'},
+  {nombre:'Bayern Múnich', primario:'rojo', secundario:'plata'},
+  {nombre:'Borussia Dortmund', primario:'oro', secundario:'negro'},
+  {nombre:'Paris Saint-Germain', primario:'azul', secundario:'rojo'},
+  {nombre:'Flamengo', primario:'rojo', secundario:'negro'},
+  {nombre:'Corinthians', primario:'plata', secundario:'negro'},
+  {nombre:'Palmeiras', primario:'verde', secundario:'plata'},
+  {nombre:'Santos', primario:'plata', secundario:'negro'},
+  {nombre:'Peñarol', primario:'oro', secundario:'negro'},
+  {nombre:'Nacional (Uruguay)', primario:'plata', secundario:'azul'},
+];
+
+/* ===================== 4. Salvaguarda anti-imitación ===================== */
+
+const ORDINARIAS_FRANJA = ['palo','faja','banda','barra'];
+
+function generarBloqueoDesdeClubes(clubes){
+  return clubes.map(c => ({
+    campo: c.primario,
+    secundarioEnFranja: c.secundario,
+    motivo: 'combinación de colores de ' + c.nombre + ' (uso interno, no mostrar al usuario)',
+  }));
+}
+
+// Reglas curadas a mano para los dos casos citados como ejemplo en el prompt (más específicas
+// que la regla genérica por color: exigen también la ordinaria/carga exacta).
+const BLOQUEO_MANUAL = [
+  { ordinariaId:'banda', campo:'plata', ordinariaTintura:'rojo',
+    motivo:'banda roja ancha sobre blanco = identidad de un grande de Núñez' },
+  { cargaId:'monograma', campo:'azul', ordinariaId:'faja', ordinariaTintura:'oro',
+    motivo:'monograma de 3 letras azul y oro con faja = identidad de un grande de La Boca' },
+];
+
+const BLOQUEO_IDENTIDAD = [
+  ...BLOQUEO_MANUAL,
+  ...generarBloqueoDesdeClubes(CLUBES.filter(c => c.nombre !== 'River Plate' && c.nombre !== 'Boca Juniors')),
+];
+
+function matchesBloqueo(crest, lista){
+  return lista.some(r => {
+    if(r.ordinariaId && crest.ordinaryId !== r.ordinariaId) return false;
+    if(r.campo && crest.fieldTincture !== r.campo) return false;
+    if(r.ordinariaTintura && crest.ordinaryTincture !== r.ordinariaTintura) return false;
+    if(r.cargaId && crest.chargeId !== r.cargaId) return false;
+    if(r.secundarioEnFranja){
+      if(!ORDINARIAS_FRANJA.includes(crest.ordinaryId)) return false;
+      if(crest.ordinaryTincture !== r.secundarioEnFranja) return false;
+    }
+    return true;
+  });
+}
+
+/* ===================== 5. Geometría / dibujo ===================== */
+
+function ellipsePath(cx,cy,rx,ry){
+  return `M${cx-rx},${cy} A${rx},${ry} 0 1,0 ${cx+rx},${cy} A${rx},${ry} 0 1,0 ${cx-rx},${cy} Z`;
+}
+function shapePath(id){
+  switch(id){
+    case 'ovalo': return ellipsePath(80,100,72,98);
+    case 'circulo': return ellipsePath(80,100,80,80);
+    case 'diamante': return 'M80,0 L160,100 L80,200 L0,100 Z';
+    case 'rombo_alargado': return 'M80,0 L128,100 L80,200 L32,100 Z';
+    case 'puntas': return 'M8,0 L152,0 L152,145 L128,125 L104,160 L80,130 L56,160 L32,125 L8,145 Z';
+    case 'polaco': return 'M10,0 L150,0 L150,155 L98,155 L98,140 L62,140 L62,155 L10,155 Z';
+    case 'espanol': return 'M10,8 Q10,0 20,0 L140,0 Q150,0 150,8 L150,160 Q150,200 80,200 Q10,200 10,160 Z';
+    default: return 'M10,18 Q10,0 32,0 L128,0 Q150,0 150,18 L150,112 Q150,172 80,200 Q10,172 10,112 Z';
+  }
+}
+function divisionOverlayMarkup(divisionId, hex2){
+  if(!hex2) return '';
+  switch(divisionId){
+    case 'per_pale': return `<rect x="80" y="0" width="80" height="200" fill="${hex2}"/>`;
+    case 'per_fess': return `<rect x="0" y="100" width="160" height="100" fill="${hex2}"/>`;
+    case 'per_bend': return `<polygon points="160,0 160,200 0,200" fill="${hex2}"/>`;
+    case 'quarterly': return `<rect x="0" y="0" width="80" height="100" fill="${hex2}"/><rect x="80" y="100" width="80" height="100" fill="${hex2}"/>`;
+    case 'per_saltire': return `<polygon points="80,100 0,0 160,0" fill="${hex2}"/><polygon points="80,100 0,200 160,200" fill="${hex2}"/>`;
+    default: return '';
+  }
+}
+function ordinaryMarkup(ordinaryId, hex, shapeId){
+  switch(ordinaryId){
+    case 'palo': return `<rect x="65" y="0" width="30" height="200" fill="${hex}"/>`;
+    case 'faja': return `<rect x="0" y="85" width="160" height="30" fill="${hex}"/>`;
+    case 'banda': return `<line x1="0" y1="0" x2="160" y2="200" stroke="${hex}" stroke-width="42"/>`;
+    case 'barra': return `<line x1="160" y1="0" x2="0" y2="200" stroke="${hex}" stroke-width="42"/>`;
+    case 'cruz': return `<rect x="65" y="0" width="30" height="200" fill="${hex}"/><rect x="0" y="85" width="160" height="30" fill="${hex}"/>`;
+    case 'aspa': return `<line x1="0" y1="0" x2="160" y2="200" stroke="${hex}" stroke-width="30"/><line x1="160" y1="0" x2="0" y2="200" stroke="${hex}" stroke-width="30"/>`;
+    case 'cabria': return `<polyline points="18,200 80,110 142,200" fill="none" stroke="${hex}" stroke-width="30" stroke-linejoin="round"/>`;
+    case 'bordura': return `<path d="${shapePath(shapeId)}" fill="none" stroke="${hex}" stroke-width="18"/>`;
+    default: return '';
+  }
+}
+
+function starPoints(cx,cy,rOuter,rInner,points){
+  const pts=[];
+  for(let i=0;i<points*2;i++){
+    const r = i%2===0 ? rOuter : rInner;
+    const a = Math.PI/points*i - Math.PI/2;
+    pts.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));
+  }
+  return pts.join(' ');
+}
+function starPath(cx,cy,rOuter,rInner,points,hex){
+  return `<polygon points="${starPoints(cx,cy,rOuter,rInner,points)}" fill="${hex}"/>`;
+}
+function sunMarkup(cx,cy,r,hex){
+  let rays='';
+  for(let i=0;i<12;i++){
+    const a = Math.PI/6*i;
+    const x1=cx+r*1.15*Math.cos(a), y1=cy+r*1.15*Math.sin(a);
+    const x2=cx+r*1.7*Math.cos(a), y2=cy+r*1.7*Math.sin(a);
+    rays += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${hex}" stroke-width="5"/>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${hex}"/>${rays}`;
+}
+function fivePetalFlower(cx,cy,r,hex){
+  let petals='';
+  for(let i=0;i<5;i++){
+    const a = (Math.PI*2/5)*i - Math.PI/2;
+    const x = cx + r*Math.cos(a), y = cy + r*Math.sin(a);
+    const rot = (a*180/Math.PI+90).toFixed(1);
+    petals += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="12" ry="18" fill="${hex}" transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+  }
+  return petals + `<circle cx="${cx}" cy="${cy}" r="8" fill="${hex}"/>`;
+}
+function wheatSprigs(cx, topY, bottomY, hex){
+  let s='';
+  for(let y=topY+6; y<bottomY-10; y+=10){
+    s += `<path d="M${cx},${y} L${cx-14},${y-8} M${cx},${y} L${cx+14},${y-8}" stroke="${hex}" stroke-width="4"/>`;
+  }
+  return s;
+}
+
+const CHARGE_SHAPES = {
+  estrella: hex => starPath(80,95,34,16,5,hex),
+  sol: hex => sunMarkup(80,95,22,hex),
+  luna: hex => `<path d="M95,70 A30,30 0 1,0 95,130 A22,22 0 1,1 95,70 Z" fill="${hex}"/>`,
+  leon: hex => `<circle cx="80" cy="85" r="20" fill="${hex}"/><path d="M50,80 Q40,60 55,55 Q50,40 70,48 Q80,35 90,48 Q110,40 105,55 Q120,60 110,80 Q100,70 80,72 Q60,70 50,80 Z" fill="${hex}"/><path d="M68,100 L72,130 M80,102 L80,132 M92,100 L88,130" stroke="${hex}" stroke-width="5"/>`,
+  aguila: hex => `<path d="M80,55 L95,75 L130,70 L100,90 L120,115 L85,100 L80,135 L75,100 L40,115 L60,90 L30,70 L65,75 Z" fill="${hex}"/>`,
+  toro: hex => `<circle cx="80" cy="95" r="22" fill="${hex}"/><path d="M58,80 Q45,65 50,55 M102,80 Q115,65 110,55" stroke="${hex}" stroke-width="6" fill="none"/>`,
+  caballo: hex => `<path d="M70,130 L72,90 Q65,70 78,55 Q95,50 98,65 L110,60 L104,72 Q112,80 108,95 L112,130 L98,130 L96,100 L84,100 L82,130 Z" fill="${hex}"/>`,
+  ciervo: hex => `<path d="M80,130 L80,90 M80,90 Q65,70 55,50 M80,90 Q95,70 105,50 M55,50 L45,40 M55,50 L50,35 M105,50 L115,40 M105,50 L110,35" stroke="${hex}" stroke-width="5" fill="none"/><circle cx="80" cy="95" r="12" fill="${hex}"/>`,
+  lobo: hex => `<path d="M55,120 L60,80 Q55,65 68,58 L75,65 L80,55 L85,65 L92,58 Q105,65 100,80 L105,120 Q80,135 55,120 Z" fill="${hex}"/>`,
+  oso: hex => `<circle cx="80" cy="95" r="26" fill="${hex}"/><circle cx="62" cy="72" r="8" fill="${hex}"/><circle cx="98" cy="72" r="8" fill="${hex}"/>`,
+  pez: hex => `<path d="M45,100 Q70,75 110,100 Q70,125 45,100 Z" fill="${hex}"/><path d="M108,100 L122,88 L122,112 Z" fill="${hex}"/>`,
+  serpiente: hex => `<path d="M50,60 Q95,70 60,95 Q30,115 70,125 Q100,132 110,115" stroke="${hex}" stroke-width="7" fill="none" stroke-linecap="round"/>`,
+  torre: hex => `<rect x="60" y="70" width="40" height="55" fill="${hex}"/><rect x="55" y="55" width="8" height="15" fill="${hex}"/><rect x="97" y="55" width="8" height="15" fill="${hex}"/><rect x="76" y="55" width="8" height="15" fill="${hex}"/>`,
+  espada: hex => `<rect x="76" y="45" width="8" height="75" fill="${hex}"/><rect x="60" y="112" width="40" height="8" fill="${hex}"/><rect x="73" y="118" width="14" height="18" fill="${hex}"/>`,
+  corazon: hex => `<path d="M80,130 C40,100 50,65 80,80 C110,65 120,100 80,130 Z" fill="${hex}"/>`,
+  mano: hex => `<path d="M65,130 L65,80 Q65,70 72,70 Q78,70 78,80 L78,65 Q78,55 85,55 Q92,55 92,65 L92,80 Q92,68 99,68 Q106,68 106,80 L106,100 Q106,130 80,130 Z" fill="${hex}"/>`,
+  llave: hex => `<circle cx="70" cy="70" r="14" fill="none" stroke="${hex}" stroke-width="7"/><rect x="68" y="80" width="7" height="45" fill="${hex}"/><rect x="68" y="110" width="18" height="7" fill="${hex}"/><rect x="68" y="120" width="14" height="7" fill="${hex}"/>`,
+  monograma: hex => `<text x="80" y="112" font-family="Georgia,serif" font-weight="900" font-size="34" text-anchor="middle" fill="${hex}">CFM</text>`,
+  ancla: hex => `<circle cx="80" cy="60" r="8" fill="none" stroke="${hex}" stroke-width="5"/><rect x="77" y="68" width="6" height="55" fill="${hex}"/><path d="M55,110 Q80,140 105,110 L95,105 Q80,122 65,105 Z" fill="${hex}"/><rect x="62" y="80" width="36" height="6" fill="${hex}"/>`,
+  remo: hex => `<ellipse cx="80" cy="60" rx="14" ry="22" fill="${hex}"/><rect x="76" y="80" width="8" height="55" fill="${hex}"/>`,
+  timon: hex => `<circle cx="80" cy="95" r="26" fill="none" stroke="${hex}" stroke-width="7"/><circle cx="80" cy="95" r="8" fill="${hex}"/><path d="M80,69 L80,55 M80,121 L80,135 M54,95 L40,95 M106,95 L120,95 M61,76 L50,65 M99,76 L110,65 M61,114 L50,125 M99,114 L110,125" stroke="${hex}" stroke-width="6"/>`,
+  herramienta: hex => `<rect x="60" y="75" width="40" height="14" rx="3" fill="${hex}" transform="rotate(-35 80 82)"/><rect x="74" y="88" width="12" height="45" fill="${hex}"/>`,
+  fauna_condor: hex => `<path d="M80,80 L50,60 Q35,55 30,70 L55,75 L80,90 L105,75 L130,70 Q125,55 110,60 Z" fill="${hex}"/><circle cx="80" cy="82" r="7" fill="${hex}"/>`,
+  fauna_yacare: hex => `<path d="M40,100 Q60,85 90,95 L120,90 L128,96 L120,100 L95,105 Q65,115 40,100 Z" fill="${hex}"/>`,
+  fauna_zorro: hex => `<path d="M60,70 L50,55 L62,60 Q80,50 98,60 L110,55 L100,70 Q110,95 95,115 L65,115 Q50,95 60,70 Z" fill="${hex}"/>`,
+  fauna_guanaco: hex => `<path d="M90,55 Q98,60 95,72 L100,100 L108,130 L98,130 L92,105 L85,130 L75,130 L78,95 Q65,90 62,75 Q58,65 65,62 Q72,68 78,72 Q82,58 90,55 Z" fill="${hex}"/>`,
+  flora_ceibo: hex => fivePetalFlower(80,95,22,hex),
+  flora_trigo: hex => `<rect x="77" y="60" width="6" height="70" fill="${hex}"/>${wheatSprigs(80,60,130,hex)}`,
+  flora_vid: hex => `<circle cx="70" cy="90" r="9" fill="${hex}"/><circle cx="88" cy="88" r="9" fill="${hex}"/><circle cx="78" cy="102" r="9" fill="${hex}"/><circle cx="96" cy="102" r="9" fill="${hex}"/><circle cx="82" cy="115" r="9" fill="${hex}"/><path d="M80,60 Q90,75 80,80" stroke="${hex}" stroke-width="4" fill="none"/>`,
+  flora_algarrobo: hex => `<path d="M80,60 Q60,75 65,100 Q55,115 65,130 Q75,118 80,105 Q85,118 95,130 Q105,115 95,100 Q100,75 80,60 Z" fill="${hex}"/>`,
+};
+
+function starsRowMarkup(n, hex){
+  if(!n) return '';
+  const spacing = 26, startX = 80 - spacing*(n-1)/2;
+  let out='';
+  for(let i=0;i<n;i++) out += starPath(startX+i*spacing, -14, 9, 4, 5, hex);
+  return out;
+}
+function anioMarkup(anio, hex){
+  if(!anio) return '';
+  const izq = anio.slice(0,2), der = anio.slice(2,4);
+  return `<text x="35" y="104" font-family="Georgia,serif" font-weight="900" font-size="20" text-anchor="middle" fill="${hex}">${izq}</text>
+          <text x="125" y="104" font-family="Georgia,serif" font-weight="900" font-size="20" text-anchor="middle" fill="${hex}">${der}</text>`;
+}
+function escapeXml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ribbonMarkup(texto, hex){
+  if(!texto) return '';
+  return `<g><path d="M-8,206 L168,206 L148,221 L168,236 L-8,236 L12,221 Z" fill="${hex}" stroke="#00000055"/>
+          <text x="80" y="226" font-family="Georgia,serif" font-weight="700" font-size="13" text-anchor="middle" fill="#1a1a1a">${escapeXml(texto)}</text></g>`;
+}
+function coronaMarkup(hex, variante){
+  const puntas = variante===1 ? 5 : 3;
+  const w=70, baseY=-46, topY=-66;
+  let picos='';
+  for(let i=0;i<puntas;i++){
+    const x = 80-w/2 + (w/(puntas-1))*i;
+    picos += `<circle cx="${x.toFixed(1)}" cy="${topY}" r="5" fill="${hex}"/><line x1="${x.toFixed(1)}" y1="${baseY}" x2="${x.toFixed(1)}" y2="${topY+5}" stroke="${hex}" stroke-width="4"/>`;
+  }
+  return `<rect x="${80-w/2-4}" y="${baseY}" width="${w+8}" height="8" fill="${hex}"/>${picos}`;
+}
+function laurelMarkup(hex, variante){
+  const hojas = variante===1 ? 7 : 5;
+  let out='';
+  for(let i=0;i<hojas;i++){
+    const t = i/(hojas-1);
+    const yL = 20 + t*170;
+    const xL = 2 + Math.sin(t*Math.PI)*14, xR = 158 - Math.sin(t*Math.PI)*14;
+    const rotL = (-30+t*20).toFixed(0), rotR = (30-t*20).toFixed(0);
+    out += `<ellipse cx="${xL.toFixed(1)}" cy="${yL.toFixed(1)}" rx="9" ry="5" fill="${hex}" transform="rotate(${rotL} ${xL.toFixed(1)} ${yL.toFixed(1)})"/>`;
+    out += `<ellipse cx="${xR.toFixed(1)}" cy="${yL.toFixed(1)}" rx="9" ry="5" fill="${hex}" transform="rotate(${rotR} ${xR.toFixed(1)} ${yL.toFixed(1)})"/>`;
+  }
+  return out;
+}
+
+/* ===================== 6. buildCrestSVG — capa final de render ===================== */
+
+function buildCrestSVG(p){
+  const fieldHex = TINCTURE_HEX[p.fieldTincture] || '#888';
+  const shapeD = shapePath(p.shapeId);
+  const clipId = 'clip_' + Math.random().toString(36).slice(2,9);
+  const div2Hex = p.divisionTincture2 ? TINCTURE_HEX[p.divisionTincture2] : null;
+  const ordHex = p.ordinaryTincture ? TINCTURE_HEX[p.ordinaryTincture] : null;
+  const chargeHex = p.chargeTincture ? TINCTURE_HEX[p.chargeTincture] : (CHARGE_NATURAL[p.chargeId] ? '#8a6d3b' : '#1a1a1a');
+  const chargeGlyph = (p.chargeId && CHARGE_SHAPES[p.chargeId]) ? CHARGE_SHAPES[p.chargeId](chargeHex) : '';
+  const ornamentoHex = p.ornamentoTincture ? TINCTURE_HEX[p.ornamentoTincture] : TINCTURE_HEX.oro;
+
+  return `<svg viewBox="-20 -80 200 320" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="${clipId}"><path d="${shapeD}"/></clipPath></defs>
+    ${p.ornamento==='laurel' ? laurelMarkup(ornamentoHex, p.ornamentoVariante||0) : ''}
+    ${starsRowMarkup(p.stars||0, TINCTURE_HEX.oro)}
+    ${p.ornamento==='corona' ? coronaMarkup(ornamentoHex, p.ornamentoVariante||0) : ''}
+    <g clip-path="url(#${clipId})">
+      <rect x="-20" y="-20" width="200" height="240" fill="${fieldHex}"/>
+      ${divisionOverlayMarkup(p.divisionId, div2Hex)}
+      ${p.ordinaryId && p.ordinaryId!=='ninguna' ? ordinaryMarkup(p.ordinaryId, ordHex, p.shapeId) : ''}
+      ${chargeGlyph}
+      ${anioMarkup(p.anio, ordHex || '#1a1a1a')}
+    </g>
+    <path d="${shapeD}" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+    ${ribbonMarkup(p.lema || '', '#e8d9a8')}
+  </svg>`;
+}
+
+/* ===================== 7. Selección restringida de tinturas + randomCrest ===================== */
+
+function esMetal(t){ return TINCTURES.metals.includes(t); }
+function weightedPickFrom(list, weightMap){
+  if(!weightMap) return list[Math.floor(Math.random()*list.length)];
+  const weights = list.map(id => (weightMap[id] !== undefined ? weightMap[id] : 1));
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*total;
+  for(let i=0;i<list.length;i++){ r -= weights[i]; if(r<=0) return list[i]; }
+  return list[list.length-1];
+}
+function pickTincture(contra, pesos){
+  let legales = ALL_TINCTURES;
+  if(contra) legales = ALL_TINCTURES.filter(t => esMetal(t) !== esMetal(contra));
+  return weightedPickFrom(legales, pesos);
+}
+function pickOne(list){ return list[Math.floor(Math.random()*list.length)]; }
+function anioFicticio(){
+  const n = 1880 + Math.floor(Math.random()*120);
+  return String(n);
+}
+
+function randomCrest(paisCode){
+  const { temaId, pesos } = pesarCatalogoPorTema(paisCode);
+  let crest, intentos = 0;
+  do {
+    const shapeId = weightedPickFrom(SHAPES, pesos && pesos.shapes);
+    const bandera = (pesos && pesos.fieldFromBandera && intentos < 5) ? colorDeBanderaTincture(paisCode) : null;
+    const fieldTincture = bandera || weightedPickFrom(ALL_TINCTURES);
+
+    const divisionId = weightedPickFrom(DIVISIONS);
+    const divisionTincture2 = divisionId !== 'ninguna' ? weightedPickFrom(ALL_TINCTURES) : null;
+
+    let ordinaryId = weightedPickFrom(ORDINARIES, pesos && pesos.ordinaries);
+    if(pesos && pesos.ordinaryForzadoNinguna) ordinaryId = 'ninguna';
+    const ordinaryTincture = ordinaryId !== 'ninguna' ? pickTincture(fieldTincture) : null;
+
+    const chargeId = weightedPickFrom(CHARGES, pesos && pesos.charges);
+    const esNatural = !!CHARGE_NATURAL[chargeId];
+    const contraCarga = ordinaryId !== 'ninguna' ? ordinaryTincture : fieldTincture;
+    const chargeTincture = esNatural ? null : pickTincture(contraCarga);
+
+    const starsBase = (temaId === 'argentino_clasico' && pesos) ? (pesos.starsDefault || 0) : 0;
+    const stars = Math.min(5, starsBase + Math.floor(Math.random()*3));
+
+    const anio = Math.random() < 0.15 ? anioFicticio() : null;
+
+    let ornamento = (pesos && pesos.ornamentoForzado) || (Math.random() < 0.12 ? pickOne(['corona','laurel']) : null);
+    const ornamentoVariante = Math.floor(Math.random()*2);
+    const ornamentoContra = ordinaryId !== 'ninguna' ? ordinaryTincture : fieldTincture;
+    const ornamentoTincture = ornamento ? pickTincture(ornamentoContra) : null;
+
+    const lema = ((pesos && pesos.lemaForzado) || Math.random() < 0.1) ? pickOne(LEMAS_INVENTADOS) : null;
+
+    crest = {
+      pais: paisCode, tema: temaId, shapeId, fieldTincture, divisionId, divisionTincture2,
+      ordinaryId, ordinaryTincture, chargeId, chargeTincture, naturalTincture: esNatural,
+      stars, anio, ornamento, ornamentoVariante, ornamentoTincture, lema,
+    };
+    intentos++;
+  } while (matchesBloqueo(crest, BLOQUEO_IDENTIDAD) && intentos < 10);
+
+  crest.atrapadoEnBloqueo = matchesBloqueo(crest, BLOQUEO_IDENTIDAD);
+  return crest;
+}
+
+/* ===================== 8. Esquema de datos (sección 6 del prompt) ===================== */
+// anio: null | string(4 dígitos ficticios) — ornamento: null|'corona'|'laurel' — lema: null|string — tema: null|id
+
+/* ===================== UI ===================== */
+
+function fillSelect(sel, items, labelFn){
+  sel.innerHTML = items.map(id => `<option value="${id}">${labelFn ? labelFn(id) : id}</option>`).join('');
+}
+
+const els = {
+  pais: document.getElementById('selPais'),
+  shape: document.getElementById('selShape'),
+  field: document.getElementById('selField'),
+  division: document.getElementById('selDivision'),
+  division2: document.getElementById('selDivision2'),
+  ordinary: document.getElementById('selOrdinary'),
+  ordinaryT: document.getElementById('selOrdinaryT'),
+  charge: document.getElementById('selCharge'),
+  chargeT: document.getElementById('selChargeT'),
+  stars: document.getElementById('selStars'),
+  ornamento: document.getElementById('selOrnamento'),
+  anio: document.getElementById('chkAnio'),
+  lema: document.getElementById('selLema'),
+};
+
+fillSelect(els.pais, PAISES.map(p=>p.code), code => PAISES.find(p=>p.code===code).nombre);
+fillSelect(els.shape, SHAPES, id => SHAPE_LABEL[id]);
+fillSelect(els.field, ALL_TINCTURES, id => TINCTURE_LABEL[id]);
+fillSelect(els.division, DIVISIONS, id => DIVISION_LABEL[id]);
+fillSelect(els.division2, ALL_TINCTURES, id => TINCTURE_LABEL[id]);
+fillSelect(els.ordinary, ORDINARIES, id => ORDINARY_LABEL[id]);
+fillSelect(els.ordinaryT, ALL_TINCTURES, id => TINCTURE_LABEL[id]);
+fillSelect(els.charge, CHARGES, id => CHARGE_LABEL[id]);
+fillSelect(els.chargeT, ALL_TINCTURES, id => TINCTURE_LABEL[id]);
+fillSelect(els.stars, [0,1,2,3,4,5], n => n + ' estrella(s)');
+fillSelect(els.ornamento, ['ninguno','corona','laurel'], id => id==='ninguno'?'Ninguno':(id==='corona'?'Corona':'Laurel'));
+fillSelect(els.anio, ['no','si'], id => id==='no' ? 'Sin año' : 'Con año ficticio');
+fillSelect(els.lema, ['ninguno', ...LEMAS_INVENTADOS], id => id==='ninguno' ? 'Sin lema' : id);
+
+function crestDesdeFormulario(){
+  const ornamento = els.ornamento.value === 'ninguno' ? null : els.ornamento.value;
+  return {
+    shapeId: els.shape.value,
+    fieldTincture: els.field.value,
+    divisionId: els.division.value,
+    divisionTincture2: els.division.value !== 'ninguna' ? els.division2.value : null,
+    ordinaryId: els.ordinary.value,
+    ordinaryTincture: els.ordinary.value !== 'ninguna' ? els.ordinaryT.value : null,
+    chargeId: els.charge.value,
+    chargeTincture: CHARGE_NATURAL[els.charge.value] ? null : els.chargeT.value,
+    stars: Number(els.stars.value),
+    ornamento, ornamentoVariante: 0,
+    ornamentoTincture: ornamento ? TINCTURE_HEX_TO_ID('#d8b45a') : null,
+    anio: els.anio.value === 'si' ? anioFicticio() : null,
+    lema: els.lema.value === 'ninguno' ? null : els.lema.value,
+  };
+}
+function TINCTURE_HEX_TO_ID(){ return 'oro'; }
+
+function pintarFormularioDesdeCrest(c){
+  els.shape.value = c.shapeId;
+  els.field.value = c.fieldTincture;
+  els.division.value = c.divisionId;
+  if(c.divisionTincture2) els.division2.value = c.divisionTincture2;
+  els.ordinary.value = c.ordinaryId;
+  if(c.ordinaryTincture) els.ordinaryT.value = c.ordinaryTincture;
+  els.charge.value = c.chargeId;
+  if(c.chargeTincture) els.chargeT.value = c.chargeTincture;
+  els.stars.value = String(c.stars||0);
+  els.ornamento.value = c.ornamento || 'ninguno';
+  els.anio.value = c.anio ? 'si' : 'no';
+  els.lema.value = c.lema || 'ninguno';
+  if(c.anio) els._anioFijo = c.anio;
+}
+
+function renderPreview(c){
+  document.getElementById('crestPreview').innerHTML = buildCrestSVG(c);
+  const atrapado = c.atrapadoEnBloqueo ? ' · ⚠ bloqueo activo (quedó igual tras 10 intentos)' : '';
+  document.getElementById('crestLabel').textContent =
+    (c.tema ? 'Tema: ' + c.tema : 'Edición manual') + atrapado;
+}
+
+function rerenderDesdeFormulario(){
+  const c = crestDesdeFormulario();
+  if(els._anioFijo && els.anio.value==='si') c.anio = els._anioFijo;
+  renderPreview(c);
+  document.getElementById('warnBox').classList.remove('show');
+  document.getElementById('okBox').classList.remove('show');
+}
+
+[els.shape, els.field, els.division, els.division2, els.ordinary, els.ordinaryT,
+ els.charge, els.chargeT, els.stars, els.ornamento, els.anio, els.lema].forEach(sel => {
+  sel.addEventListener('change', rerenderDesdeFormulario);
+});
+
+document.getElementById('btnRandom').addEventListener('click', () => {
+  const c = randomCrest(els.pais.value);
+  pintarFormularioDesdeCrest(c);
+  renderPreview(c);
+  document.getElementById('warnBox').classList.remove('show');
+  document.getElementById('okBox').classList.remove('show');
+});
+
+document.getElementById('btnGuardar').addEventListener('click', () => {
+  const c = crestDesdeFormulario();
+  if(els._anioFijo && els.anio.value==='si') c.anio = els._anioFijo;
+  const bloqueado = matchesBloqueo(c, BLOQUEO_IDENTIDAD);
+  document.getElementById('warnBox').classList.toggle('show', bloqueado);
+  document.getElementById('okBox').classList.toggle('show', !bloqueado);
+  if(!bloqueado){
+    try{
+      const guardados = JSON.parse(localStorage.getItem('escudosGuardados')||'[]');
+      guardados.push(c);
+      localStorage.setItem('escudosGuardados', JSON.stringify(guardados));
+    }catch(e){}
+  }
+});
+
+document.getElementById('btnVerif').addEventListener('click', ejecutarVerificacion);
+
+function ejecutarVerificacion(){
+  const grid = document.getElementById('verifGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<40;i++){
+    const pais = PAISES[Math.floor(Math.random()*PAISES.length)].code;
+    const c = randomCrest(pais);
+    const div = document.createElement('div');
+    div.className = 'verifThumb';
+    div.title = c.tema || '';
+    div.innerHTML = buildCrestSVG(c);
+    grid.appendChild(div);
+  }
+  let atrapadas = 0;
+  for(let i=0;i<500;i++){
+    const pais = PAISES[Math.floor(Math.random()*PAISES.length)].code;
+    const c = randomCrest(pais);
+    if(c.atrapadoEnBloqueo) atrapadas++;
+  }
+  document.getElementById('verifReport').textContent =
+    'Simulación de 500 generaciones: ' + atrapadas + ' quedaron atrapadas tras 10 reintentos de BLOQUEO_IDENTIDAD ' +
+    '(objetivo: 0 — si el número es alto, el catálogo de bloqueo es demasiado agresivo y hay que relajar esa regla puntual).\n' +
+    'Grilla de 40 escudos nuevos renderizada arriba a tamaño chico (pasá el mouse para agrandar) — revisar que ninguna carga quede ilegible.';
+}
+
+(function mostrarCatalogo(){
+  const info = document.getElementById('catalogoInfo');
+  const pares = [
+    ['Formas', SHAPES.length + ' (objetivo 8)'],
+    ['Tinturas', ALL_TINCTURES.length + ' (8 colores + 2 metales)'],
+    ['Divisiones', DIVISIONS.length + ' (objetivo 6, incl. ninguna)'],
+    ['Ordinarias', ORDINARIES.length + ' (objetivo 8, incl. ninguna)'],
+    ['Cargas', CHARGES.length + ' (objetivo 30)'],
+    ['Reglas BLOQUEO_IDENTIDAD', BLOQUEO_IDENTIDAD.length],
+    ['Combinaciones posibles', (SHAPES.length*DIVISIONS.length*ORDINARIES.length*CHARGES.length*ALL_TINCTURES.length).toLocaleString('es-AR') + '+'],
+  ];
+  info.innerHTML = pares.map(([k,v]) => `<span class="pill"><b>${k}:</b> ${v}</span>`).join('');
+})();
+
+(function iniciar(){
+  const c = randomCrest('AR');
+  pintarFormularioDesdeCrest(c);
+  renderPreview(c);
+})();
+</script>
+</body>
+</html>
