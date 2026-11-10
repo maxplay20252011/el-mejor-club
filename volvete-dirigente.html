@@ -39,7 +39,7 @@ h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
 .cargas{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:260px;overflow:auto;} .carga{background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:6px;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;} .carga span{font-size:.68rem;text-align:center;} .carga.on{border-color:var(--gold);} .carga svg{width:100%;height:56px;}
 .preview{display:flex;flex-direction:column;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:2;}
 .aviso{display:none;background:#2a1a10;border:1px solid #e07a1f;color:#ffcf9a;border-radius:10px;padding:9px 12px;font-size:.82rem;} .aviso.show{display:block;}
-.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;} .hud-cell{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;transition:background .3s;}
+.hud{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;} .hud-cell{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;transition:background .3s;}
 .hud-cell.up{background:#123a24;} .hud-cell.down{background:#3d1818;} .hud-v{font:700 1.05rem 'JetBrains Mono',monospace;} .hud-v.neg{color:var(--bad);} .hud-l{font-size:.62rem;color:var(--mut);}
 .progress{height:5px;background:var(--panel2);border-radius:5px;overflow:hidden;} .progress div{height:100%;background:var(--gold);}
 .ctx{font-size:1rem;line-height:1.5;margin:4px 0;}
@@ -56,9 +56,11 @@ h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto;}
 .big{font:800 2.6rem 'JetBrains Mono',monospace;color:var(--gold);}
 .diario{background:#e8dfc8;color:#1b1710;border-radius:6px;padding:16px;font-family:Georgia,serif;} .diario .cab{font-weight:900;letter-spacing:.18em;text-align:center;border-bottom:3px double #1b1710;padding-bottom:8px;margin-bottom:10px;font-size:1.05rem;} .diario .tit{font-weight:700;font-size:1.05rem;line-height:1.3;padding:9px 0;border-bottom:1px solid #b9ae92;} .diario .tit.bien span{color:#1d7a3a;} .diario .tit.mal span{color:#b3261e;}
-.verd{font-size:1.5rem;} .final-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;} .final-stats div{background:var(--panel);border-radius:10px;padding:8px 2px;display:flex;flex-direction:column;} .final-stats b{font:800 1.05rem 'JetBrains Mono';} .final-stats small{color:var(--mut);font-size:.62rem;}
-.seedbox{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;font-size:.8rem;color:var(--mut);} .seedbox input{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font:600 1rem 'JetBrains Mono';}
+.verd{font-size:1.5rem;} .final-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;} .final-stats div{background:var(--panel);border-radius:10px;padding:8px 2px;display:flex;flex-direction:column;} .final-stats b{font:800 1.05rem 'JetBrains Mono';} .final-stats small{color:var(--mut);font-size:.62rem;}
 .foot{font-size:.68rem;color:#6b7385;text-align:center;line-height:1.5;margin-top:14px;}
+.tag{font-style:normal;font-size:.68rem;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:1px 6px;margin-left:4px;color:var(--mut);white-space:nowrap;}
+.logros{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;} .logro{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;} .logro span{font-size:1.5rem;} .logro small{display:block;color:var(--mut);font-size:.72rem;}
+.hist{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.8rem;display:flex;flex-direction:column;gap:4px;} .hrow{display:flex;justify-content:space-between;gap:8px;}
 </style>
 </head>
 <body>
@@ -433,7 +435,7 @@ const APELLIDOS_GENERICOS = ["Morgan","Reed","Hayes","Fox","Stone","Cole","Webb"
 /* ===== eventos.js ===== */
 /* Pool de decisiones — plantillas con variables. expandirPlantillas() devuelve los eventos concretos. */
 
-const D = (g, p, r, c) => ({ gestion: g, prensa: p, resultado: r, caja: c });
+const D = (g, p, r, c, v) => (v === undefined ? { gestion: g, prensa: p, resultado: r, caja: c } : { gestion: g, prensa: p, resultado: r, caja: c, vestuario: v });
 const O = (texto, sub, d, msg, extra) => Object.assign({ texto, sub, d, msg }, typeof extra === 'string' ? { setea: extra } : extra);
 const A = (texto, sub, p, okD, okMsg, malD, malMsg, okX, malX) => ({
   texto, sub, azar: { p, ok: Object.assign({ d: okD, msg: okMsg }, okX), mal: Object.assign({ d: malD, msg: malMsg }, malX) },
@@ -1152,6 +1154,108 @@ const PLANTILLAS_EVENTOS = [
     O('Esperar que pase','Sin respuestas',D(-4,-3,-2,0),'No dijiste nada. La tribuna se sintió abandonada.'),
   ] },
 
+/* ===================== CONSECUENCIAS (se activan por decisiones previas) ===================== */
+{ id:'cons_vendido_brilla', cat:'deportivo', jugador:'vendido', requiere:'vendio_figura',
+  titulo:'{JUGADOR} brilla donde lo vendiste',
+  contexto:'{JUGADOR}, al que dejaste ir, {HAZANA}. La hinchada te lo recuerda en cada partido.',
+  variables:{ HAZANA:['hizo un golazo en su debut','fue figura en el clásico del otro lado','ya es titular indiscutido','salió en todos los resúmenes de la fecha'] },
+  opciones:[
+    O('Intentar recomprarlo','Caro y con orgullo herido',D(2,3,4,-140,3),'Volvió {JUGADOR}: pagaste de más, pero la tribuna lo festejó.',FICHA),
+    O('Decir que fue lo mejor para el club','Defendés la decisión',D(-2,-2,0,0,-2),'Defendiste la venta. Pocos te creyeron y el vestuario tomó nota.'),
+    O('Felicitarlo en público','Elegancia',D(2,3,0,0,1),'Felicitaste a {JUGADOR} en redes: quedaste como un caballero.'),
+  ] },
+
+{ id:'cons_vendido_vestuario', cat:'institucional', jugador:null, requiere:'vendio_figura',
+  titulo:'El vestuario pregunta por la venta',
+  contexto:'Tras la salida de una de las figuras, {REFERENTE} pide hablar con vos: quieren saber si el club tiene un proyecto o está liquidando.',
+  variables:{ REFERENTE:['el capitán','un grupo de referentes','el delegado del plantel'] },
+  opciones:[
+    O('Prometer refuerzos','Compromiso que hay que cumplir',D(1,1,2,-80,6),'Prometiste refuerzos. El plantel se calmó, pero ahora hay que cumplir.'),
+    O('Explicar el proyecto con números','Franqueza',D(2,0,0,0,2),'Mostraste las cuentas: no gustó, pero lo entendieron.'),
+    O('Cortar la charla','Autoridad, sin explicaciones',D(-2,-3,-3,0,-8),'Cortaste la charla. El vestuario quedó resentido.'),
+  ] },
+
+{ id:'cons_recorte_reclamo', cat:'deportivo', jugador:null, requiere:'recorte',
+  titulo:'El plantel reclama por el recorte',
+  contexto:'El ajuste de gastos llegó al vestuario: {RECLAMO}. Los jugadores quieren una respuesta antes del próximo partido.',
+  variables:{ RECLAMO:['se atrasaron los premios','se recortaron las concentraciones','los viajes ahora son en micro'] },
+  opciones:[
+    O('Pagar los premios','Se calma el vestuario, sale plata',D(-1,0,3,-70,8),'Pagaste lo adeudado: el plantel respondió en la cancha.'),
+    O('Mantener el ajuste','Disciplina fiscal',D(2,0,-3,0,-8),'Mantuviste el ajuste. La caja respira; el vestuario, no.'),
+    A('Prometer premios si hay resultados','Apuesta al esfuerzo',0.5,D(2,1,3,0,5),'El plantel se motivó y el equipo ganó: cumplir será barato.',D(-3,-2,-3,-30,-8),'No hubo resultados y el plantel sintió que le mentiste.'),
+  ] },
+
+{ id:'cons_recorte_socios', cat:'hinchada', jugador:null, requiere:'recorte',
+  titulo:'Los socios notan el ajuste',
+  contexto:'{AVISO} y en las redes se multiplican las quejas: "con este dirigente se achica todo".',
+  variables:{ AVISO:['Se cerró el buffet de la popular','La sede social bajó la persiana antes de hora','Las cuotas se actualizaron sin aviso'] },
+  opciones:[
+    O('Explicar el ahorro','Transparencia',D(2,2,0,0,0),'Explicaste el porqué del ajuste: la mayoría lo entendió.'),
+    O('Compensar con un beneficio','Cuesta, pero calma',D(3,3,0,-40,1),'Sumaste un beneficio para socios y la queja se apagó.'),
+    O('Ignorar las quejas','El ahorro manda',D(-4,-4,0,20,-1),'Ignoraste el ruido. Ahorraste, pero la tribuna lo recordó.'),
+  ] },
+
+{ id:'cons_prensa_vendetta', cat:'mediatico', jugador:null, requiere:'prensa_enojada',
+  titulo:'El periodista no te perdona',
+  contexto:'{PERIODISTA} no suelta el tema: cada programa arranca recordando tu último desliz.',
+  variables:{ PERIODISTA:['El conductor del programa de las diez','Un cronista histórico del club','Una columnista de un portal deportivo'] },
+  opciones:[
+    O('Invitarlo a una charla','Bajar la tensión',D(1,4,0,0,0),'Se sentaron a charlar. La nota siguiente fue más amable.'),
+    O('No responder nada','Dejar que se agote',D(-2,-5,0,0,0),'No respondiste. El tema duró dos semanas más.'),
+    A('Contraatacar con un comunicado','Puede salir muy bien o muy mal',0.4,D(3,5,0,0,2),'El comunicado pegó: la opinión pública te acompañó.',D(-4,-7,0,0,-3),'El comunicado cayó pésimo y el periodista lo usó de leña.'),
+  ] },
+
+{ id:'cons_racha_presion', cat:'hinchada', jugador:null, requiere:'racha',
+  titulo:'La victoria sube las expectativas',
+  contexto:'Después del buen resultado, {HINCHADA}. Ahora cualquier tropiezo se va a leer como una crisis.',
+  variables:{ HINCHADA:['la tribuna empezó a cantar por el título','la prensa ya habla de candidatos','los socios piden refuerzos de jerarquía'] },
+  opciones:[
+    O('Pedir calma','Bajar la presión',D(2,1,-2,0,3),'Pediste calma: el vestuario respiró, la tribuna se frenó.'),
+    O('Prometer pelear arriba','Subís la apuesta',D(3,5,0,0,-3),'Prometiste pelear arriba. Ahora hay que cumplir.'),
+    O('Premiar al plantel','Reconocimiento con costo',D(1,2,3,-90,6),'Premiaste al plantel por la racha: están a muerte con vos.'),
+  ] },
+
+{ id:'cons_vestuario_reunion', cat:'institucional', jugador:null, requiere:'vestuario_roto',
+  titulo:'Se rompió el vestuario',
+  contexto:'{SINTOMA}. El técnico te avisa que si no se interviene, el grupo se parte en dos.',
+  variables:{ SINTOMA:['Dos referentes se pelearon a los gritos en el entrenamiento','Hay un grupo de jugadores que ya no le habla al técnico','Se filtró un audio del plantel criticando a la dirigencia'] },
+  opciones:[
+    O('Reunión a solas con los referentes','Diálogo directo',D(2,0,2,0,15),'La reunión ordenó al grupo. Costó, pero valió la pena.'),
+    O('Cambiar al capitán','Gesto fuerte',D(-2,-2,0,0,10),'Cambiaste al capitán. Algunos lo aplaudieron, otros hicieron silencio.'),
+    O('Sancionar a los involucrados','Mano dura',D(1,3,-2,0,-5),'Sancionaste a los involucrados: la prensa aplaudió, el vestuario se enfrió.'),
+  ] },
+
+{ id:'cons_capitan_renuncia', cat:'institucional', jugador:'capitan', requiere:'vestuario_critico',
+  titulo:'El capitán quiere irse',
+  contexto:'{JUGADOR}, el capitán, te pide hablar: {MOTIVO}. Si se va, el grupo queda sin referente.',
+  variables:{ MOTIVO:['dice que ya no se siente respaldado','está harto del clima en el vestuario','recibió una oferta y está tentado'] },
+  opciones:[
+    O('Convencerlo con una mejora de contrato','Cuesta plata, ordena el grupo',D(1,1,2,-80,15),'{JUGADOR} renovó y volvió a ordenar al grupo.'),
+    O('Reunirte con todo el plantel','Poner las cartas sobre la mesa',D(2,0,1,0,8),'La reunión fue áspera, pero el grupo salió más unido.'),
+    O('Dejarlo ir','Cortás por lo sano',D(-3,-3,-5,40,-5),'{JUGADOR} se fue. Entró plata, pero el vestuario quedó huérfano.',VENDE),
+  ] },
+
+{ id:'cons_vestuario_oro', cat:'deportivo', jugador:null, requiere:'vestuario_oro',
+  titulo:'El plantel se juega por vos',
+  contexto:'El grupo está tan unido que {GESTO}. Es el mejor momento para pedirles un esfuerzo extra.',
+  variables:{ GESTO:['los referentes proponen renovar con rebaja','los juveniles piden entrenar doble turno','el plantel organizó un asado con los socios'] },
+  opciones:[
+    O('Aprovechar el envión','Exigir más, sin costo',D(1,2,4,0,-4),'Pediste más y respondieron en la cancha, aunque el grupo notó el tirón.'),
+    O('Premiarlos con un viaje','Cuidar el clima',D(1,3,1,-60,6),'El viaje fue un éxito: el grupo está a muerte con vos.'),
+    O('Dejar todo como está','No tocar lo que funciona',D(1,1,2,0,2),'No tocaste nada. A veces es la mejor decisión.'),
+  ] },
+
+{ id:'dep_arquero_apuro', cat:'deportivo', jugador:'fichaje:ARQ', cond:'pocos_arqueros',
+  titulo:'Te quedaste sin arqueros',
+  contexto:'El plantel cuenta con un solo arquero y el técnico no quiere jugar la suerte. Aparece {JUGADOR}, arquero de {JEDAD} años y nivel {JRATING}.',
+  variables:{ PLAZO:['esta semana'] },
+  opciones:[
+    O('Fichar a {JUGADOR}','Seguridad bajo los tres palos',D(3,1,5,-80,3),'{JUGADOR} llegó a {CLUB}: el técnico durmió tranquilo por primera vez en semanas.',FICHA),
+    O('Promover a un juvenil','Confiar en la cantera',D(2,2,-2,0,0),'Subiste a un juvenil como suplente. Es una apuesta.'),
+    O('Arreglarse con lo que hay','Cero gasto, cero red',D(-2,-1,-4,0,-3),'No hiciste nada. El técnico dejó claro que te avisó.'),
+  ] },
+
+
 ];
 
 /* ===================== Expansión ===================== */
@@ -1198,6 +1302,7 @@ const expandirPlantillas = (plantillas) => {
         opciones: p.opciones.map(op => _instanciarOpcion(op, vars)),
       };
       if (p.requiere) ev.requiere = p.requiere;
+      if (p.cond) ev.cond = p.cond;
       out.push(ev);
     });
   }
@@ -1714,12 +1819,14 @@ function hashStr(s){
   return h >>> 0;
 }
 function mulberry32(a){
-  return function(){
+  const f = function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
     let t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
+  f.estado = () => a | 0;   // permite guardar y retomar la secuencia exacta
+  return f;
 }
 
 const DIFICULTAD_INFO = {
@@ -2063,12 +2170,13 @@ function iniciarPartida(clubData, seed){
   state = {
     seed, rng, rngEv,
     club: { nombre:clubData.nombre, ciudad:clubData.ciudad || '', paisCode:clubData.paisCode, dif:clubData.dif, crest:clubData.crest },
-    stats: { ...clubData.stats },
+    stats: { vestuario: 55, ...clubData.stats },
     cajaInicial: clubData.stats.caja,
     plantel, titulares: formacionAutomatica(plantel),
     capitan: elegirCapitan(plantel),
     eventos: m.eventos, reservas: m.reservas, idx: 0,
     flags: {}, historial: [], ctx: null, resultado: null, fin: null,
+    vendidos: [], ventas: 0, fichajes: 0, encadenados: 0, guardado: false,
   };
   state.club.crest = { ...clubData.crest, nombre: clubData.crest.nombre || null };
   ui.mercado = [];
@@ -2086,6 +2194,8 @@ function probConPlantel(base){
 }
 
 function eventoValido(ev){
+  if(ev.cond === 'pocos_arqueros' && state.plantel.filter(j => j.pos === 'ARQ').length > 1) return false;
+  if(ev.jugador === 'vendido' && !state.vendidos.length) return false;
   if(ev.jugador && ev.jugador.indexOf('cualidad:') === 0){
     const q = ev.jugador.split(':')[1];
     return state.plantel.some(j => q === '*' ? !!j.cualidad : j.cualidad === q);
@@ -2098,10 +2208,12 @@ function ctxParaEvento(ev){
   const rng = state.rng;
   const k = ev.jugador;
   if(k === 'capitan') jugador = jugadorPorNombre(state.plantel, state.capitan);
+  else if(k === 'vendido') jugador = state.vendidos[state.vendidos.length - 1] || null;
+  else if(k && k.indexOf('fichaje:') === 0) jugador = generarJugador(rng, { paisCode:state.club.paisCode, ratingBase:68, ratingSpread:12, pos:k.split(':')[1] });
   else if(k === 'fichaje') jugador = generarJugador(rng, { paisCode:state.club.paisCode, ratingBase:72, ratingSpread:14 });
   else if(k === 'exJugador') jugador = generarJugador(rng, { paisCode:state.club.paisCode, ratingBase:55, ratingSpread:25, retirado:true });
   else if(k) jugador = elegirJugador(rng, state.plantel, k, state.titulares, ev.cat === 'deportivo');
-  return { jugador, esNuevo: k === 'fichaje' || k === 'exJugador' };
+  return { jugador, esNuevo: !!k && (k === 'vendido' || k === 'exJugador' || k.indexOf('fichaje') === 0) };
 }
 
 function eventoActual(){
@@ -2114,6 +2226,23 @@ function eventoActual(){
     ev = rep;
   }
   return ev;
+}
+
+/* ---------- vestuario: si la opción no lo fija, se deriva de lo que hace ---------- */
+function derivarVestuario(d, ev, op, r, ctx){
+  const j = ctx.jugador, q = j && !ctx.esNuevo ? j.cualidad : null;
+  const vende = op.vende || r.vende, ficha = op.ficha || r.ficha;
+  let v = 0;
+  if(ev.cat === 'deportivo') v += Math.round(d.resultado * 0.4);
+  if(ev.cat === 'hinchada' && d.gestion > 2) v += 1;
+  if(ev.cat === 'economico' && d.caja >= 60 && d.gestion <= 0) v -= 3;          // recorte de gastos
+  if(ev.cat === 'economico' && d.caja <= -60 && d.resultado > 0) v += 2;        // inversión en el plantel
+  if(vende && j && !ctx.esNuevo){
+    const figura = j.rating >= 75 || q === 'idolo' || q === 'lider' || state.capitan === j.nombreCompleto;
+    v -= figura ? 10 : 4;
+  }
+  if(ficha && ctx.esNuevo) v += 2;
+  return v;
 }
 
 /* ---------- aplicar efecto (único punto donde pesan las cualidades) ---------- */
@@ -2132,6 +2261,16 @@ function aplicarOpcion(op, ev, ctx){
   } else r = { d: op.d, msg: op.msg };
   const d = Object.assign({ gestion:0, prensa:0, resultado:0, caja:0 }, r.d || {});
   const notas = [];
+  if(state.club.dif === 'facil'){            // un grande no perdona: lo malo pega 25% más
+    if(d.gestion < 0) d.gestion = Math.round(d.gestion * 1.25);
+    if(d.prensa < 0) d.prensa = Math.round(d.prensa * 1.25);
+  }
+  if(d.vestuario == null) d.vestuario = derivarVestuario(d, ev, op, r, ctx);
+  if(ev.cat === 'deportivo'){
+    if(state.stats.vestuario < 15){ d.resultado -= 4; notas.push('🔥 Vestuario en llamas: −4 al resultado'); }
+    else if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
+    else if(state.stats.vestuario >= 75){ d.resultado += 2; notas.push('🧑‍🤝‍🧑 Vestuario unido: +2 al resultado'); }
+  }
   const bueno = (d.gestion + d.prensa + d.resultado) > 0;
   if(q === 'cazagoles' && ev.cat === 'deportivo' && d.resultado > 0){ d.resultado = Math.round(d.resultado * 1.15); notas.push('⚡ Cazagoles: +15% al resultado'); }
   if(q === 'muro' && d.resultado < 0){ d.resultado = Math.round(d.resultado / 2); notas.push('🧱 Muro: la pérdida se reduce a la mitad'); }
@@ -2140,8 +2279,11 @@ function aplicarOpcion(op, ev, ctx){
   if(q === 'revalorizable' && bueno){ j.valor = Math.round(j.valor * 1.2); notas.push('📈 Revalorizable: su valor subió 20%'); }
   if(q === 'lider'){ d.gestion += 2; notas.push('🤝 Líder silencioso: +2 a gestión'); }
   const vende = op.vende || r.vende, ficha = op.ficha || r.ficha;
+  let vendioFigura = false;
   if(vende && j && !ctx.esNuevo){
     if(q === 'idolo'){ d.gestion -= 15; notas.push('👑 Vendiste a un Ídolo: −15 a gestión'); }
+    state.vendidos.push(j); state.ventas++;
+    if(j.rating >= 72 || q === 'idolo' || state.capitan === j.nombreCompleto) vendioFigura = true;
     state.plantel = state.plantel.filter(x => x !== j);
     Object.keys(state.titulares).forEach(s => { if(state.titulares[s] === j.nombreCompleto) state.titulares[s] = null; });
     if(state.capitan === j.nombreCompleto) state.capitan = elegirCapitan(state.plantel);
@@ -2150,17 +2292,24 @@ function aplicarOpcion(op, ev, ctx){
   }
   if(ficha && j && ctx.esNuevo && state.plantel.length < 26){
     asignarDorsal(state.plantel, j, state.rng);
-    state.plantel.push(j);
+    state.plantel.push(j); state.fichajes++;
+    state.vendidos = state.vendidos.filter(x => x !== j);
     notas.push('✍️ ' + j.nombreCompleto + ' se suma al plantel (#' + j.dorsal + ')');
+  }
+  if(state.idx >= 5){   // la presión de la expectativa crece en la segunda mitad
+    const rf = state.stats.resultado + d.resultado, dif = state.club.dif;
+    if(dif === 'facil' && rf < 0){ d.gestion -= 3; notas.push('📣 La tribuna de un grande no espera: −3 a gestión'); }
+    else if(dif === 'medio' && rf < -6){ d.gestion -= 2; notas.push('📣 La tribuna se impacienta: −2 a gestión'); }
   }
   const antes = { ...state.stats };
   state.stats.gestion = clamp(state.stats.gestion + d.gestion, 0, 100);
   state.stats.prensa = clamp(state.stats.prensa + d.prensa, 0, 100);
   state.stats.resultado += d.resultado;
   state.stats.caja += d.caja;
+  state.stats.vestuario = clamp(state.stats.vestuario + d.vestuario, 0, 100);
   const setea = op.setea || r.setea;
   if(setea) state.flags[setea] = true;
-  return { d, setea, msg: sustituirTexto(r.msg || '', ctx), notas, antes };
+  return { d, setea, vendioFigura, msg: sustituirTexto(r.msg || '', ctx), notas, antes };
 }
 
 function elegirOpcion(i){
@@ -2169,11 +2318,28 @@ function elegirOpcion(i){
   const op = ev.opciones[i];
   const res = aplicarOpcion(op, ev, ctx);
   const impacto = Math.abs(res.d.gestion) + Math.abs(res.d.prensa) + Math.abs(res.d.resultado) + Math.abs(res.d.caja) / 20;
-  state.historial.push({ cat: ev.cat, titulo: sustituirTexto(ev.titulo, ctx), opcion: sustituirTexto(op.texto, ctx), d: res.d, impacto, msg: res.msg });
+  state.historial.push({ cat: ev.cat, cons: !!ev.requiere, titulo: sustituirTexto(ev.titulo, ctx), opcion: sustituirTexto(op.texto, ctx), d: res.d, impacto, msg: res.msg });
   state.resultado = res;
+  if(ev.requiere) state.encadenados++;
   if(res.setea) insertarEncadenado(res.setea);
+  else {
+    const d = res.d;
+    const autos = [
+      ['vestuario_critico', state.stats.vestuario < 20],
+      ['vestuario_roto', state.stats.vestuario < 30],
+      ['vestuario_oro', state.stats.vestuario >= 85],
+      ['vendio_figura', res.vendioFigura],
+      ['recorte', ev.cat === 'economico' && d.caja >= 60 && d.gestion <= 0],
+      ['prensa_enojada', ev.cat === 'mediatico' && d.prensa <= -5],
+      ['racha', ev.cat === 'deportivo' && d.resultado >= 6],
+    ];
+    const a = autos.find(([f, cond]) => cond && !state.flags[f]);
+    if(a){ state.flags[a[0]] = true; insertarEncadenado(a[0]); }
+  }
   if(state.stats.gestion <= 0) state.fin = 'destituido';
   else if(state.stats.caja <= -250) state.fin = 'quiebra';
+  else if(state.stats.vestuario <= 0) state.fin = 'motin';
+  if(state.fin) borrarGuardado();
   ui.screen = 'resultado';
 }
 function insertarEncadenado(flag){
@@ -2181,23 +2347,34 @@ function insertarEncadenado(flag){
   const cand = POOL.filter(e => e.requiere === flag && !usados.has(e.id));
   if(!cand.length) return;
   const ev = cand[Math.floor(state.rngEv() * cand.length)];
-  const pos = Math.min(state.idx + 3, state.eventos.length);
+  let pos = Math.min(state.idx + 3, state.eventos.length);
+  while(pos < state.eventos.length && state.eventos[pos].requiere) pos++;
   if(pos < state.eventos.length) state.eventos[pos] = ev; else state.eventos.push(ev);
 }
 function siguienteEvento(){
   state.idx++;
   state.ctx = null;
   state.resultado = null;
-  if(state.fin || state.idx >= state.eventos.length){ ui.screen = 'diario'; return; }
+  if(state.fin || state.idx >= state.eventos.length){ borrarGuardado(); ui.screen = 'diario'; return; }
+  guardarPartida();
   ui.screen = 'evento';
 }
 
 /* ---------- veredicto / titulares ---------- */
+const OBJETIVOS = {
+  facil:   { texto:'Pelear el campeonato: resultado de +8 o más y gestión de 60 o más.', ok: s => s.resultado >= 8 && s.gestion >= 60 },
+  medio:   { texto:'Clasificar a copa: resultado de +3 o más sin gastar más del 30% de la caja.', ok: (s, ci) => s.resultado >= 3 && s.caja >= ci * 0.7 },
+  dificil: { texto:'Sobrevivir: evitar el descenso (resultado de −4 o más) y cerrar con caja positiva.', ok: s => s.resultado >= -4 && s.caja >= 0 },
+};
+function objetivo(){
+  const o = OBJETIVOS[state.club.dif];
+  return { texto: o.texto, cumplido: !!o.ok(state.stats, state.cajaInicial) };
+}
 function calcularScore(){
   const s = state.stats;
   const resNorm = clamp(50 + s.resultado, 0, 100);
-  const cajaNorm = clamp(50 + (s.caja - state.cajaInicial) / Math.max(60, state.cajaInicial * 0.6) * 50, 0, 100);
-  return 0.3 * s.gestion + 0.2 * s.prensa + 0.3 * resNorm + 0.2 * cajaNorm;
+  const cajaNorm = clamp(50 + (s.caja - state.cajaInicial) / Math.max(100, state.cajaInicial) * 50, 0, 100);
+  return 0.28 * s.gestion + 0.15 * s.prensa + 0.3 * resNorm + 0.1 * cajaNorm + 0.17 * s.vestuario;
 }
 const VEREDICTOS = [
   { min:78, titulo:'Leyenda de la dirigencia', facil:'Gestión impecable, pero con este club era lo mínimo que se esperaba: no te alcanza para la estatua.', medio:'Una temporada redonda. Los socios piden que no te vayas nunca.', dificil:'Una hazaña. Con tan poco, lograste lo que nadie esperaba: te van a hacer un mural.' },
@@ -2208,11 +2385,15 @@ const VEREDICTOS = [
 ];
 function veredicto(){
   let sc = calcularScore();
+  sc += objetivo().cumplido ? 6 : -4;
   if(state.club.dif === 'dificil') sc += 10; else if(state.club.dif === 'facil') sc -= 8;
   const v = VEREDICTOS.find(x => sc >= x.min) || VEREDICTOS[VEREDICTOS.length - 1];
   let extra = '';
   if(state.fin === 'destituido') extra = 'La hinchada perdió la confianza: te destituyeron antes de terminar la temporada.';
+  if(state.fin === 'motin') extra = 'El plantel se declaró en rebeldía: sin vestuario no hay club que se sostenga.';
   if(state.fin === 'quiebra') extra = 'El club quebró con vos al mando: caja en rojo y sin salida.';
+  const ob = objetivo();
+  if(!state.fin) extra = (extra ? extra + ' ' : '') + (ob.cumplido ? 'Objetivo cumplido.' : 'Objetivo incumplido.');
   return { titulo: state.fin ? 'Mandato interrumpido' : v.titulo, texto: v[state.club.dif], extra, score: Math.round(sc) };
 }
 function tresTitulares(){
@@ -2281,6 +2462,71 @@ function crestDelCfg(){
   return c;
 }
 
+/* ---------- logros, historial local, sonido ---------- */
+function logros(){
+  const s = state.stats, fin = state.fin, L = [];
+  if(fin) L.push(['💥', 'Caído en combate', 'Tu mandato no llegó al final de la temporada.']);
+  if(state.fichajes >= 3) L.push(['💸', 'Comprador compulsivo', 'Sumaste a 3 o más jugadores.']);
+  if(!fin && state.fichajes === 0) L.push(['🧊', 'Mercado congelado', 'Terminaste sin un solo fichaje.']);
+  if(state.ventas >= 3) L.push(['🏷', 'El que vendió todo', 'Vendiste a 3 o más jugadores.']);
+  if(!fin && s.vestuario >= 80) L.push(['🧑‍🤝‍🧑', 'Vestuario de oro', 'Cerraste con el plantel en la palma de la mano.']);
+  if(!fin && s.prensa >= 80) L.push(['📰', 'Prensa en el bolsillo', 'Prensa a 80 o más.']);
+  if(!fin && state.cajaInicial > 0 && s.caja >= state.cajaInicial * 1.25) L.push(['🏦', 'Caja de hierro', 'Cerraste con 25% más de caja que al empezar.']);
+  if(!fin && s.gestion < 35) L.push(['🧗', 'Sobreviviente', 'Llegaste al final con la gestión por el piso.']);
+  if(!fin && Math.min(s.gestion, s.prensa, s.vestuario) >= 55) L.push(['⚖️', 'Equilibrista', 'Gestión, prensa y vestuario por encima de 55.']);
+  if(!fin && objetivo().cumplido) L.push(['🎯', 'Objetivo cumplido', 'Lograste la meta de la temporada.']);
+  if(state.encadenados >= 3) L.push(['🎲', 'Efecto dominó', 'Tus decisiones volvieron a buscarte 3 veces o más.']);
+  return L;
+}
+const HIST_KEY = 'vd_hist_v1';
+function leerHist(){ try{ return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }catch(e){ return []; } }
+function guardarHist(){
+  if(!state || state.guardado) return;
+  state.guardado = true;
+  const v = veredicto();
+  const h = leerHist();
+  h.unshift({ club: state.club.nombre, dif: state.club.dif, titulo: v.titulo, score: v.score, fin: state.fin || null, f: Date.now() });
+  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0, 30))); }catch(e){}
+}
+const SFX = { on: (() => { try{ return localStorage.getItem('vd_mute') !== '1'; }catch(e){ return true; } })(), ctx: null };
+function toggleSonido(){ SFX.on = !SFX.on; try{ localStorage.setItem('vd_mute', SFX.on ? '0' : '1'); }catch(e){} }
+function feedback(bueno){
+  try{ if(navigator.vibrate) navigator.vibrate(bueno ? 20 : [30, 40, 30]); }catch(e){}
+  if(!SFX.on) return;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    SFX.ctx = SFX.ctx || new AC();
+    (bueno ? [523, 659] : [220, 165]).forEach((f, i) => {
+      const o = SFX.ctx.createOscillator(), g = SFX.ctx.createGain(), t = SFX.ctx.currentTime + i * 0.11;
+      o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g); g.connect(SFX.ctx.destination); o.start(t); o.stop(t + 0.2);
+    });
+  }catch(e){}
+}
+
+/* ---------- partida guardada (entre evento y evento) ---------- */
+const SAVE_KEY = 'vd_save_v1';
+function guardarPartida(){
+  if(!state || state.fin) return;
+  try{
+    const s = Object.assign({}, state, { rng: state.rng.estado(), rngEv: state.rngEv.estado(), ctx: null, resultado: null });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, f: Date.now(), state: s }));
+  }catch(e){}
+}
+function hayGuardado(){
+  try{ const g = JSON.parse(localStorage.getItem(SAVE_KEY)); return g && g.v === 1 && g.state && g.state.club ? g : null; }catch(e){ return null; }
+}
+function borrarGuardado(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function cargarPartida(){
+  const g = hayGuardado();
+  if(!g) return false;
+  const s = g.state;
+  s.rng = mulberry32(s.rng); s.rngEv = mulberry32(s.rngEv);
+  state = s; ui.mercado = []; ui.slotAbierto = null; ui.screen = 'evento'; ui.volverA = 'evento';
+  return true;
+}
+
 /* ===== ui.js ===== */
 /* ===================== Interfaz ===================== */
 
@@ -2290,10 +2536,10 @@ function crestSvg(c, cls){ return `<div class="crest ${cls || ''}">${buildCrestS
 function hud(){
   const s = state.stats;
   const cell = (k, ic, v, extra) => `<div class="hud-cell" id="hud-${k}"><span class="hud-ic">${ic}</span><span class="hud-v ${extra || ''}">${v}</span><span class="hud-l">${k === 'caja' ? 'Caja' : k[0].toUpperCase() + k.slice(1)}</span></div>`;
-  return `<div class="hud">${cell('gestion','🏟', Math.round(s.gestion))}${cell('prensa','📰', Math.round(s.prensa))}${cell('resultado','⚽', signo(s.resultado))}${cell('caja','💰', fmtCaja(s.caja), s.caja < 0 ? 'neg' : '')}</div>`;
+  return `<div class="hud">${cell('gestion','🏟', Math.round(s.gestion))}${cell('prensa','📰', Math.round(s.prensa))}${cell('resultado','⚽', signo(s.resultado))}${cell('caja','💰', fmtCaja(s.caja), s.caja < 0 ? 'neg' : '')}${cell('vestuario','🧑‍🤝‍🧑', Math.round(s.vestuario))}</div>`;
 }
 function flashHud(antes){
-  ['gestion','prensa','resultado','caja'].forEach(k => {
+  ['gestion','prensa','resultado','caja','vestuario'].forEach(k => {
     const d = state.stats[k] - antes[k];
     const el = document.getElementById('hud-' + k);
     if(el && d !== 0){ el.classList.add(d > 0 ? 'up' : 'down'); setTimeout(() => el.classList.remove('up','down'), 900); }
@@ -2301,7 +2547,7 @@ function flashHud(antes){
 }
 function chipDelta(k, v){
   if(!v) return '';
-  const ic = { gestion:'🏟', prensa:'📰', resultado:'⚽', caja:'💰' }[k];
+  const ic = { gestion:'🏟', prensa:'📰', resultado:'⚽', caja:'💰', vestuario:'🧑‍🤝‍🧑' }[k];
   const txt = k === 'caja' ? signo(v) + 'k' : signo(v);
   return `<span class="chip ${v > 0 ? 'pos' : 'neg'}">${ic} ${txt}</span>`;
 }
@@ -2314,16 +2560,22 @@ function playerChip(j, extra){
 function disclaimer(){ return '<div class="foot">Juego de ficción no oficial, sin afiliación con los clubes mencionados. Todos los escudos son generados: ninguno reproduce el de un club real.</div>'; }
 
 /* ---------- pantallas ---------- */
+function continuarHtml(){
+  const g = hayGuardado();
+  if(!g) return '';
+  const s = g.state;
+  return `<button class="btn primary" data-act="continuar">▶ Continuar: ${esc(s.club.nombre)} (evento ${s.idx + 1} de ${s.eventos.length})</button>`;
+}
 function pantallaInicio(){
-  const seed = ui.seed !== null ? ui.seed : (ui.seed = Math.floor(Math.random() * 1e9));
   return `<div class="screen center">
     <div class="logo">🏟</div>
     <h1>Volvete Dirigente</h1>
     <p class="mut">Una temporada al frente de un club. Trece decisiones. Ningún final obvio.</p>
+    ${continuarHtml()}
     <button class="btn primary" data-act="irCrear">Crear mi propio club</button>
     <button class="btn" data-act="irElegir">Elegir un club existente</button>
-    <label class="seedbox">Semilla de la temporada <input id="seedInput" data-in="seed" value="${seed}" inputmode="numeric">
-      <span class="mut">Misma semilla + mismo club = mismos eventos. Compartila para comparar gestiones.</span></label>
+    ${historialHtml()}
+    <button class="btn ghost sm" data-act="toggleSonido">${SFX.on ? '🔊 Sonido activado' : '🔇 Sonido apagado'}</button>
     ${disclaimer()}
   </div>`;
 }
@@ -2455,6 +2707,7 @@ function pantallaPresupuesto(){
   return `<div class="screen center">
     <h2>Presupuesto de la temporada</h2>
     <div class="big">${fmtCaja(state.stats.caja)}</div>
+    <div class="nota">🎯 Objetivo: ${esc(objetivo().texto)}</div>
     <p class="mut">Con esta plata sostenés sueldos, fichajes e imprevistos durante toda la temporada. Si la caja se hunde, el club corre riesgo de quiebra.</p>
     <button class="btn" data-act="irMercado">🛒 Ir al mercado antes de arrancar</button>
     <button class="btn" data-act="irPlantel">👥 Ver plantel</button>
@@ -2489,17 +2742,24 @@ function pantallaMercado(){
 
 /* ---------- evento / resultado ---------- */
 const CAT_LABEL = { deportivo:'⚽ Deportivo', economico:'💰 Económico', institucional:'🏛 Institucional', mediatico:'📰 Mediático', hinchada:'📣 Hinchada' };
+function tagsOpcion(o){
+  const t = [];
+  if(o.azar) t.push('🎲 Riesgo');
+  if(o.vende) t.push('🚪 Sale un jugador');
+  if(o.ficha) t.push('✍️ Llega un jugador');
+  return t.length ? ' ' + t.map(x => `<em class="tag">${x}</em>`).join('') : '';
+}
 function pantallaEvento(){
   const ev = eventoActual();
   if(!state.ctx) state.ctx = ctxParaEvento(ev);
   const ctx = state.ctx;
   return `<div class="screen">${hud()}
     <div class="progress"><div style="width:${(state.idx / state.eventos.length) * 100}%"></div></div>
-    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat}</div>
+    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat} · 🎯 ${objetivo().cumplido ? 'objetivo en camino' : 'objetivo en riesgo'}</div>
     <h2>${esc(sustituirTexto(ev.titulo, ctx))}</h2>
     ${playerChip(ctx.jugador)}
     <p class="ctx">${esc(sustituirTexto(ev.contexto, ctx))}</p>
-    <div class="list">${ev.opciones.map((o, i) => `<button class="opt" data-act="opcion" data-v="${i}"><b>${esc(sustituirTexto(o.texto, ctx))}</b><span>${esc(sustituirTexto(o.sub || '', ctx))}</span></button>`).join('')}</div>
+    <div class="list">${ev.opciones.map((o, i) => `<button class="opt" data-act="opcion" data-v="${i}"><b>${esc(sustituirTexto(o.texto, ctx))}</b><span>${esc(sustituirTexto(o.sub || '', ctx))}${tagsOpcion(o)}</span></button>`).join('')}</div>
     <div class="row3"><button class="btn ghost sm" data-act="irPlantel">👥 Plantel</button><button class="btn ghost sm" data-act="irMercado">🛒 Mercado</button><button class="btn ghost sm" data-act="irFormacion">📋 Formación</button></div>
   </div>`;
 }
@@ -2512,9 +2772,9 @@ function pantallaResultado(){
   return `<div class="screen" id="pantallaResultado">${hud()}
     <div class="reac"><div><span>${hinchada[0]}</span><small>${hinchada[1]}</small></div><div><span>${prensa[0]}</span><small>${prensa[1]}</small></div></div>
     <p class="ctx">${esc(r.msg)}</p>
-    <div class="chips">${chipDelta('gestion', d.gestion)}${chipDelta('prensa', d.prensa)}${chipDelta('resultado', d.resultado)}${chipDelta('caja', d.caja)}</div>
+    <div class="chips">${chipDelta('gestion', d.gestion)}${chipDelta('prensa', d.prensa)}${chipDelta('resultado', d.resultado)}${chipDelta('caja', d.caja)}${chipDelta('vestuario', d.vestuario)}</div>
     ${r.notas.map(n => `<div class="nota">${esc(n)}</div>`).join('')}${warn}
-    ${state.fin ? `<div class="aviso show">${state.fin === 'destituido' ? 'La gestión llegó a 0: te destituyen.' : 'La caja se hundió: el club quiebra.'}</div>` : ''}
+    ${state.fin ? `<div class="aviso show">${state.fin === 'destituido' ? 'La gestión llegó a 0: te destituyen.' : state.fin === 'motin' ? 'El vestuario llegó a 0: el plantel se te rebeló.' : 'La caja se hundió: el club quiebra.'}</div>` : ''}
     <button class="btn primary" data-act="siguiente">${state.fin || state.idx + 1 >= state.eventos.length ? 'Ver el cierre' : 'Siguiente'}</button>
   </div>`;
 }
@@ -2528,18 +2788,32 @@ function pantallaDiario(){
 }
 function pantallaFinal(){
   const v = veredicto(), s = state.stats;
-  const url = location.href.split('#')[0] + '#s=' + state.seed;
   return `<div class="screen center">
     ${crestSvg(state.club.crest, 'lg')}
     <h2>${esc(state.club.nombre)}</h2><div class="mut">${bandera(state.club.paisCode)} ${DIFICULTAD_INFO[state.club.dif].label}</div>
     <h1 class="verd">${esc(v.titulo)}</h1>
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
-    <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div></div>
-    <div class="mut">Semilla ${state.seed}</div>
-    <button class="btn primary" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
-    <button class="btn" data-act="copiarSemilla" data-v="${esc(url)}">🔗 Copiar link de esta temporada</button>
+    <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
+    <div class="nota">🎯 ${esc(objetivo().texto)} <b>${state.fin ? 'No cumplido' : objetivo().cumplido ? 'Cumplido ✔' : 'No cumplido ✘'}</b></div>
+    ${logrosHtml()}
+    <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
+    <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
     <button class="btn" data-act="irInicio">Jugar de nuevo</button>
     ${disclaimer()}</div>`;
+}
+
+function logrosHtml(){
+  const L = logros();
+  if(!L.length) return '';
+  return `<div class="logros">${L.map(([ic, t, d]) => `<div class="logro"><span>${ic}</span><div><b>${esc(t)}</b><small>${esc(d)}</small></div></div>`).join('')}</div>`;
+}
+function historialHtml(){
+  const h = leerHist();
+  if(!h.length) return '';
+  const mejor = h.reduce((a, b) => (b.score > a.score ? b : a), h[0]);
+  return `<div class="hist"><b>Tus últimas gestiones</b>
+    ${h.slice(0, 5).map(x => `<div class="hrow"><span>${esc(x.club)}</span><span class="mut">${esc(x.titulo)} · ${x.score}</span></div>`).join('')}
+    <div class="mut">Mejor: ${esc(mejor.club)} (${mejor.score})</div></div>`;
 }
 
 const PANTALLAS = {
@@ -2552,6 +2826,24 @@ function render(){
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);
 }
+function descargarTarjeta(){
+  tarjetaCanvas(cv => {
+    const a = document.createElement('a');
+    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+function compartir(el){
+  const v = veredicto();
+  const texto = `Mi gestión en ${state.club.nombre}: «${v.titulo}» (${v.score}/100). ¿Podés hacerlo mejor?`;
+  const copiar = () => { try{ navigator.clipboard.writeText(texto); el.textContent = '✔ Copiado'; }catch(e){ el.textContent = texto; } };
+  if(!navigator.share){ copiar(); return; }
+  tarjetaCanvas(cv => cv.toBlob(blob => {
+    const file = blob ? new File([blob], 'volvete-dirigente.png', { type:'image/png' }) : null;
+    const data = file && navigator.canShare && navigator.canShare({ files:[file] }) ? { text:texto, files:[file] } : { text:texto };
+    navigator.share(data).catch(() => {});
+  }, 'image/png'));
+}
 function refrescarPreviewCrear(){
   const p = document.querySelector('.preview');
   if(p){
@@ -2561,7 +2853,7 @@ function refrescarPreviewCrear(){
 }
 
 /* ---------- tarjeta descargable ---------- */
-function descargarTarjeta(){
+function tarjetaCanvas(cb){
   const v = veredicto(), s = state.stats, c = state.club;
   const W = 1080, H = 1350;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -2579,16 +2871,14 @@ function descargarTarjeta(){
     txt(c.nombre, 990, 64, '#e8e4d8', '900');
     txt(DIFICULTAD_INFO[c.dif].label + ' · ' + ((paisPorCode(c.paisCode) || {}).nombre || ''), 1040, 34, '#9aa3b2', '400');
     txt(v.titulo, 1110, 52, '#d8b45a', '900');
-    const stats = [['Resultado', signo(s.resultado)], ['Gestión', Math.round(s.gestion)], ['Prensa', Math.round(s.prensa)], ['Caja', fmtCaja(s.caja)]];
+    const stats = [['Resultado', signo(s.resultado)], ['Gestión', Math.round(s.gestion)], ['Prensa', Math.round(s.prensa)], ['Caja', fmtCaja(s.caja)], ['Vestuario', Math.round(s.vestuario)]];
     stats.forEach(([k, val], i) => {
-      const x = 150 + i * 260;
+      const x = 140 + i * 200;
       g.fillStyle = '#e8e4d8'; g.font = '900 50px Georgia'; g.fillText(String(val), x, 1190);
       g.fillStyle = '#9aa3b2'; g.font = '400 26px Georgia'; g.fillText(k, x, 1228);
     });
-    txt('Semilla ' + state.seed + ' · Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
-    const a = document.createElement('a');
-    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente-' + state.seed + '.png';
-    document.body.appendChild(a); a.click(); a.remove();
+    txt('Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
+    cb(cv);
   };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
@@ -2648,23 +2938,25 @@ function onAct(act, v, el){
       if(!j || state.stats.caja < precio || state.plantel.length >= 26) break;
       state.stats.caja -= precio;
       asignarDorsal(state.plantel, j, state.rng);
-      state.plantel.push(j);
+      state.plantel.push(j); state.fichajes++;
       ui.mercado.splice(Number(v), 1);
       break; }
     case 'actualizarMercado': ui.mercado = generarCandidatosMercado(state.rng, state.club, 6); break;
-    case 'arrancar': ui.screen = 'evento'; ui.volverA = 'evento'; break;
-    case 'opcion': elegirOpcion(Number(v)); break;
+    case 'arrancar': guardarPartida(); ui.screen = 'evento'; ui.volverA = 'evento'; break;
+    case 'continuar': cargarPartida(); break;
+    case 'opcion': elegirOpcion(Number(v)); { const r = state.resultado.d; feedback((r.gestion + r.prensa + r.resultado + r.vestuario) >= 0); } break;
     case 'siguiente': siguienteEvento(); break;
-    case 'irFinal': ui.screen = 'final'; break;
+    case 'irFinal': guardarHist(); ui.screen = 'final'; break;
+    case 'toggleSonido': toggleSonido(); break;
+    case 'compartir': compartir(el); return;
     case 'descargarTarjeta': descargarTarjeta(); return;
-    case 'copiarSemilla':
-      try{ navigator.clipboard.writeText(v); el.textContent = '✔ Link copiado'; }catch(e){ el.textContent = v; }
-      return;
   }
   render();
 }
 function leerSeed(){
-  const n = Number(String(ui.seed).replace(/\D/g, ''));
+  // cada partida usa una semilla aleatoria
+  const n = Number(String(ui.seed || '').replace(/\D/g, ''));
+  ui.seed = null;
   return n > 0 ? n : Math.floor(Math.random() * 1e9);
 }
 app.addEventListener('click', e => {
@@ -2675,7 +2967,6 @@ app.addEventListener('click', e => {
 app.addEventListener('input', e => {
   const el = e.target, k = el.dataset.in;
   if(!k) return;
-  if(k === 'seed'){ ui.seed = el.value; return; }
   if(k === 'busqueda'){ ui.cfg.busqueda = el.value; document.getElementById('listaPaises').innerHTML = listaPaises(); return; }
   if(k === 'nombre'){ ui.cfg.nombre = el.value; ui.cfg.aviso = false; const b = document.getElementById('btnConfirmarClub'); if(b) b.disabled = el.value.trim().length < 2; refrescarPreviewCrear(); return; }
   if(k === 'ciudad'){ ui.cfg.ciudad = el.value; return; }
@@ -2695,8 +2986,6 @@ app.addEventListener('input', e => {
 /* ---------- arranque ---------- */
 (function arranque(){
   inicializarPool();
-  const m = location.hash.match(/s=(\d+)/);
-  if(m) ui.seed = m[1];
   render();
 })();
 
