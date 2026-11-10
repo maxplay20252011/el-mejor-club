@@ -1,0 +1,13 @@
+name: check
+on: [push, pull_request]
+jobs:
+  build-and-sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: python3 src/build.py
+      - name: El HTML versionado debe coincidir con src/
+        run: git diff --exit-code volvete-dirigente.html
+      - run: node tools/simular.js 100

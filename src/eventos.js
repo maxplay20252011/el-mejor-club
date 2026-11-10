@@ -1,6 +1,6 @@
 /* Pool de decisiones — plantillas con variables. expandirPlantillas() devuelve los eventos concretos. */
 
-const D = (g, p, r, c) => ({ gestion: g, prensa: p, resultado: r, caja: c });
+const D = (g, p, r, c, v) => (v === undefined ? { gestion: g, prensa: p, resultado: r, caja: c } : { gestion: g, prensa: p, resultado: r, caja: c, vestuario: v });
 const O = (texto, sub, d, msg, extra) => Object.assign({ texto, sub, d, msg }, typeof extra === 'string' ? { setea: extra } : extra);
 const A = (texto, sub, p, okD, okMsg, malD, malMsg, okX, malX) => ({
   texto, sub, azar: { p, ok: Object.assign({ d: okD, msg: okMsg }, okX), mal: Object.assign({ d: malD, msg: malMsg }, malX) },
@@ -719,6 +719,88 @@ const PLANTILLAS_EVENTOS = [
     O('Esperar que pase','Sin respuestas',D(-4,-3,-2,0),'No dijiste nada. La tribuna se sintió abandonada.'),
   ] },
 
+/* ===================== CONSECUENCIAS (se activan por decisiones previas) ===================== */
+{ id:'cons_vendido_brilla', cat:'deportivo', jugador:'vendido', requiere:'vendio_figura',
+  titulo:'{JUGADOR} brilla donde lo vendiste',
+  contexto:'{JUGADOR}, al que dejaste ir, {HAZANA}. La hinchada te lo recuerda en cada partido.',
+  variables:{ HAZANA:['hizo un golazo en su debut','fue figura en el clásico del otro lado','ya es titular indiscutido','salió en todos los resúmenes de la fecha'] },
+  opciones:[
+    O('Intentar recomprarlo','Caro y con orgullo herido',D(2,3,4,-140,3),'Volvió {JUGADOR}: pagaste de más, pero la tribuna lo festejó.',FICHA),
+    O('Decir que fue lo mejor para el club','Defendés la decisión',D(-2,-2,0,0,-2),'Defendiste la venta. Pocos te creyeron y el vestuario tomó nota.'),
+    O('Felicitarlo en público','Elegancia',D(2,3,0,0,1),'Felicitaste a {JUGADOR} en redes: quedaste como un caballero.'),
+  ] },
+
+{ id:'cons_vendido_vestuario', cat:'institucional', jugador:null, requiere:'vendio_figura',
+  titulo:'El vestuario pregunta por la venta',
+  contexto:'Tras la salida de una de las figuras, {REFERENTE} pide hablar con vos: quieren saber si el club tiene un proyecto o está liquidando.',
+  variables:{ REFERENTE:['el capitán','un grupo de referentes','el delegado del plantel'] },
+  opciones:[
+    O('Prometer refuerzos','Compromiso que hay que cumplir',D(1,1,2,-80,6),'Prometiste refuerzos. El plantel se calmó, pero ahora hay que cumplir.'),
+    O('Explicar el proyecto con números','Franqueza',D(2,0,0,0,2),'Mostraste las cuentas: no gustó, pero lo entendieron.'),
+    O('Cortar la charla','Autoridad, sin explicaciones',D(-2,-3,-3,0,-8),'Cortaste la charla. El vestuario quedó resentido.'),
+  ] },
+
+{ id:'cons_recorte_reclamo', cat:'deportivo', jugador:null, requiere:'recorte',
+  titulo:'El plantel reclama por el recorte',
+  contexto:'El ajuste de gastos llegó al vestuario: {RECLAMO}. Los jugadores quieren una respuesta antes del próximo partido.',
+  variables:{ RECLAMO:['se atrasaron los premios','se recortaron las concentraciones','los viajes ahora son en micro'] },
+  opciones:[
+    O('Pagar los premios','Se calma el vestuario, sale plata',D(-1,0,3,-70,8),'Pagaste lo adeudado: el plantel respondió en la cancha.'),
+    O('Mantener el ajuste','Disciplina fiscal',D(2,0,-3,0,-8),'Mantuviste el ajuste. La caja respira; el vestuario, no.'),
+    A('Prometer premios si hay resultados','Apuesta al esfuerzo',0.5,D(2,1,3,0,5),'El plantel se motivó y el equipo ganó: cumplir será barato.',D(-3,-2,-3,-30,-8),'No hubo resultados y el plantel sintió que le mentiste.'),
+  ] },
+
+{ id:'cons_recorte_socios', cat:'hinchada', jugador:null, requiere:'recorte',
+  titulo:'Los socios notan el ajuste',
+  contexto:'{AVISO} y en las redes se multiplican las quejas: "con este dirigente se achica todo".',
+  variables:{ AVISO:['Se cerró el buffet de la popular','La sede social bajó la persiana antes de hora','Las cuotas se actualizaron sin aviso'] },
+  opciones:[
+    O('Explicar el ahorro','Transparencia',D(2,2,0,0,0),'Explicaste el porqué del ajuste: la mayoría lo entendió.'),
+    O('Compensar con un beneficio','Cuesta, pero calma',D(3,3,0,-40,1),'Sumaste un beneficio para socios y la queja se apagó.'),
+    O('Ignorar las quejas','El ahorro manda',D(-4,-4,0,20,-1),'Ignoraste el ruido. Ahorraste, pero la tribuna lo recordó.'),
+  ] },
+
+{ id:'cons_prensa_vendetta', cat:'mediatico', jugador:null, requiere:'prensa_enojada',
+  titulo:'El periodista no te perdona',
+  contexto:'{PERIODISTA} no suelta el tema: cada programa arranca recordando tu último desliz.',
+  variables:{ PERIODISTA:['El conductor del programa de las diez','Un cronista histórico del club','Una columnista de un portal deportivo'] },
+  opciones:[
+    O('Invitarlo a una charla','Bajar la tensión',D(1,4,0,0,0),'Se sentaron a charlar. La nota siguiente fue más amable.'),
+    O('No responder nada','Dejar que se agote',D(-2,-5,0,0,0),'No respondiste. El tema duró dos semanas más.'),
+    A('Contraatacar con un comunicado','Puede salir muy bien o muy mal',0.4,D(3,5,0,0,2),'El comunicado pegó: la opinión pública te acompañó.',D(-4,-7,0,0,-3),'El comunicado cayó pésimo y el periodista lo usó de leña.'),
+  ] },
+
+{ id:'cons_racha_presion', cat:'hinchada', jugador:null, requiere:'racha',
+  titulo:'La victoria sube las expectativas',
+  contexto:'Después del buen resultado, {HINCHADA}. Ahora cualquier tropiezo se va a leer como una crisis.',
+  variables:{ HINCHADA:['la tribuna empezó a cantar por el título','la prensa ya habla de candidatos','los socios piden refuerzos de jerarquía'] },
+  opciones:[
+    O('Pedir calma','Bajar la presión',D(2,1,-2,0,3),'Pediste calma: el vestuario respiró, la tribuna se frenó.'),
+    O('Prometer pelear arriba','Subís la apuesta',D(3,5,0,0,-3),'Prometiste pelear arriba. Ahora hay que cumplir.'),
+    O('Premiar al plantel','Reconocimiento con costo',D(1,2,3,-90,6),'Premiaste al plantel por la racha: están a muerte con vos.'),
+  ] },
+
+{ id:'cons_vestuario_reunion', cat:'institucional', jugador:null, requiere:'vestuario_roto',
+  titulo:'Se rompió el vestuario',
+  contexto:'{SINTOMA}. El técnico te avisa que si no se interviene, el grupo se parte en dos.',
+  variables:{ SINTOMA:['Dos referentes se pelearon a los gritos en el entrenamiento','Hay un grupo de jugadores que ya no le habla al técnico','Se filtró un audio del plantel criticando a la dirigencia'] },
+  opciones:[
+    O('Reunión a solas con los referentes','Diálogo directo',D(2,0,2,0,15),'La reunión ordenó al grupo. Costó, pero valió la pena.'),
+    O('Cambiar al capitán','Gesto fuerte',D(-2,-2,0,0,10),'Cambiaste al capitán. Algunos lo aplaudieron, otros hicieron silencio.'),
+    O('Sancionar a los involucrados','Mano dura',D(1,3,-2,0,-5),'Sancionaste a los involucrados: la prensa aplaudió, el vestuario se enfrió.'),
+  ] },
+
+{ id:'dep_arquero_apuro', cat:'deportivo', jugador:'fichaje:ARQ', cond:'pocos_arqueros',
+  titulo:'Te quedaste sin arqueros',
+  contexto:'El plantel cuenta con un solo arquero y el técnico no quiere jugar la suerte. Aparece {JUGADOR}, arquero de {JEDAD} años y nivel {JRATING}.',
+  variables:{ PLAZO:['esta semana'] },
+  opciones:[
+    O('Fichar a {JUGADOR}','Seguridad bajo los tres palos',D(3,1,5,-80,3),'{JUGADOR} llegó a {CLUB}: el técnico durmió tranquilo por primera vez en semanas.',FICHA),
+    O('Promover a un juvenil','Confiar en la cantera',D(2,2,-2,0,0),'Subiste a un juvenil como suplente. Es una apuesta.'),
+    O('Arreglarse con lo que hay','Cero gasto, cero red',D(-2,-1,-4,0,-3),'No hiciste nada. El técnico dejó claro que te avisó.'),
+  ] },
+
+
 ];
 
 /* ===================== Expansión ===================== */
@@ -765,6 +847,7 @@ const expandirPlantillas = (plantillas) => {
         opciones: p.opciones.map(op => _instanciarOpcion(op, vars)),
       };
       if (p.requiere) ev.requiere = p.requiere;
+      if (p.cond) ev.cond = p.cond;
       out.push(ev);
     });
   }

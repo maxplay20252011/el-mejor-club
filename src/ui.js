@@ -6,10 +6,10 @@ function crestSvg(c, cls){ return `<div class="crest ${cls || ''}">${buildCrestS
 function hud(){
   const s = state.stats;
   const cell = (k, ic, v, extra) => `<div class="hud-cell" id="hud-${k}"><span class="hud-ic">${ic}</span><span class="hud-v ${extra || ''}">${v}</span><span class="hud-l">${k === 'caja' ? 'Caja' : k[0].toUpperCase() + k.slice(1)}</span></div>`;
-  return `<div class="hud">${cell('gestion','🏟', Math.round(s.gestion))}${cell('prensa','📰', Math.round(s.prensa))}${cell('resultado','⚽', signo(s.resultado))}${cell('caja','💰', fmtCaja(s.caja), s.caja < 0 ? 'neg' : '')}</div>`;
+  return `<div class="hud">${cell('gestion','🏟', Math.round(s.gestion))}${cell('prensa','📰', Math.round(s.prensa))}${cell('resultado','⚽', signo(s.resultado))}${cell('caja','💰', fmtCaja(s.caja), s.caja < 0 ? 'neg' : '')}${cell('vestuario','🧑‍🤝‍🧑', Math.round(s.vestuario))}</div>`;
 }
 function flashHud(antes){
-  ['gestion','prensa','resultado','caja'].forEach(k => {
+  ['gestion','prensa','resultado','caja','vestuario'].forEach(k => {
     const d = state.stats[k] - antes[k];
     const el = document.getElementById('hud-' + k);
     if(el && d !== 0){ el.classList.add(d > 0 ? 'up' : 'down'); setTimeout(() => el.classList.remove('up','down'), 900); }
@@ -17,7 +17,7 @@ function flashHud(antes){
 }
 function chipDelta(k, v){
   if(!v) return '';
-  const ic = { gestion:'🏟', prensa:'📰', resultado:'⚽', caja:'💰' }[k];
+  const ic = { gestion:'🏟', prensa:'📰', resultado:'⚽', caja:'💰', vestuario:'🧑‍🤝‍🧑' }[k];
   const txt = k === 'caja' ? signo(v) + 'k' : signo(v);
   return `<span class="chip ${v > 0 ? 'pos' : 'neg'}">${ic} ${txt}</span>`;
 }
@@ -31,15 +31,14 @@ function disclaimer(){ return '<div class="foot">Juego de ficción no oficial, s
 
 /* ---------- pantallas ---------- */
 function pantallaInicio(){
-  const seed = ui.seed !== null ? ui.seed : (ui.seed = Math.floor(Math.random() * 1e9));
   return `<div class="screen center">
     <div class="logo">🏟</div>
     <h1>Volvete Dirigente</h1>
     <p class="mut">Una temporada al frente de un club. Trece decisiones. Ningún final obvio.</p>
     <button class="btn primary" data-act="irCrear">Crear mi propio club</button>
     <button class="btn" data-act="irElegir">Elegir un club existente</button>
-    <label class="seedbox">Semilla de la temporada <input id="seedInput" data-in="seed" value="${seed}" inputmode="numeric">
-      <span class="mut">Misma semilla + mismo club = mismos eventos. Compartila para comparar gestiones.</span></label>
+    ${historialHtml()}
+    <button class="btn ghost sm" data-act="toggleSonido">${SFX.on ? '🔊 Sonido activado' : '🔇 Sonido apagado'}</button>
     ${disclaimer()}
   </div>`;
 }
@@ -205,6 +204,13 @@ function pantallaMercado(){
 
 /* ---------- evento / resultado ---------- */
 const CAT_LABEL = { deportivo:'⚽ Deportivo', economico:'💰 Económico', institucional:'🏛 Institucional', mediatico:'📰 Mediático', hinchada:'📣 Hinchada' };
+function tagsOpcion(o){
+  const t = [];
+  if(o.azar) t.push('🎲 Riesgo');
+  if(o.vende) t.push('🚪 Sale un jugador');
+  if(o.ficha) t.push('✍️ Llega un jugador');
+  return t.length ? ' ' + t.map(x => `<em class="tag">${x}</em>`).join('') : '';
+}
 function pantallaEvento(){
   const ev = eventoActual();
   if(!state.ctx) state.ctx = ctxParaEvento(ev);
@@ -215,7 +221,7 @@ function pantallaEvento(){
     <h2>${esc(sustituirTexto(ev.titulo, ctx))}</h2>
     ${playerChip(ctx.jugador)}
     <p class="ctx">${esc(sustituirTexto(ev.contexto, ctx))}</p>
-    <div class="list">${ev.opciones.map((o, i) => `<button class="opt" data-act="opcion" data-v="${i}"><b>${esc(sustituirTexto(o.texto, ctx))}</b><span>${esc(sustituirTexto(o.sub || '', ctx))}</span></button>`).join('')}</div>
+    <div class="list">${ev.opciones.map((o, i) => `<button class="opt" data-act="opcion" data-v="${i}"><b>${esc(sustituirTexto(o.texto, ctx))}</b><span>${esc(sustituirTexto(o.sub || '', ctx))}${tagsOpcion(o)}</span></button>`).join('')}</div>
     <div class="row3"><button class="btn ghost sm" data-act="irPlantel">👥 Plantel</button><button class="btn ghost sm" data-act="irMercado">🛒 Mercado</button><button class="btn ghost sm" data-act="irFormacion">📋 Formación</button></div>
   </div>`;
 }
@@ -228,9 +234,9 @@ function pantallaResultado(){
   return `<div class="screen" id="pantallaResultado">${hud()}
     <div class="reac"><div><span>${hinchada[0]}</span><small>${hinchada[1]}</small></div><div><span>${prensa[0]}</span><small>${prensa[1]}</small></div></div>
     <p class="ctx">${esc(r.msg)}</p>
-    <div class="chips">${chipDelta('gestion', d.gestion)}${chipDelta('prensa', d.prensa)}${chipDelta('resultado', d.resultado)}${chipDelta('caja', d.caja)}</div>
+    <div class="chips">${chipDelta('gestion', d.gestion)}${chipDelta('prensa', d.prensa)}${chipDelta('resultado', d.resultado)}${chipDelta('caja', d.caja)}${chipDelta('vestuario', d.vestuario)}</div>
     ${r.notas.map(n => `<div class="nota">${esc(n)}</div>`).join('')}${warn}
-    ${state.fin ? `<div class="aviso show">${state.fin === 'destituido' ? 'La gestión llegó a 0: te destituyen.' : 'La caja se hundió: el club quiebra.'}</div>` : ''}
+    ${state.fin ? `<div class="aviso show">${state.fin === 'destituido' ? 'La gestión llegó a 0: te destituyen.' : state.fin === 'motin' ? 'El vestuario llegó a 0: el plantel se te rebeló.' : 'La caja se hundió: el club quiebra.'}</div>` : ''}
     <button class="btn primary" data-act="siguiente">${state.fin || state.idx + 1 >= state.eventos.length ? 'Ver el cierre' : 'Siguiente'}</button>
   </div>`;
 }
@@ -250,12 +256,28 @@ function pantallaFinal(){
     <h2>${esc(state.club.nombre)}</h2><div class="mut">${bandera(state.club.paisCode)} ${DIFICULTAD_INFO[state.club.dif].label}</div>
     <h1 class="verd">${esc(v.titulo)}</h1>
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
-    <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div></div>
+    <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
+    ${logrosHtml()}
     <div class="mut">Semilla ${state.seed}</div>
-    <button class="btn primary" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
+    <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
+    <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
     <button class="btn" data-act="copiarSemilla" data-v="${esc(url)}">🔗 Copiar link de esta temporada</button>
     <button class="btn" data-act="irInicio">Jugar de nuevo</button>
     ${disclaimer()}</div>`;
+}
+
+function logrosHtml(){
+  const L = logros();
+  if(!L.length) return '';
+  return `<div class="logros">${L.map(([ic, t, d]) => `<div class="logro"><span>${ic}</span><div><b>${esc(t)}</b><small>${esc(d)}</small></div></div>`).join('')}</div>`;
+}
+function historialHtml(){
+  const h = leerHist();
+  if(!h.length) return '';
+  const mejor = h.reduce((a, b) => (b.score > a.score ? b : a), h[0]);
+  return `<div class="hist"><b>Tus últimas gestiones</b>
+    ${h.slice(0, 5).map(x => `<div class="hrow"><span>${esc(x.club)}</span><span class="mut">${esc(x.titulo)} · ${x.score}</span></div>`).join('')}
+    <div class="mut">Mejor: ${esc(mejor.club)} (${mejor.score})</div></div>`;
 }
 
 const PANTALLAS = {
@@ -268,6 +290,25 @@ function render(){
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);
 }
+function descargarTarjeta(){
+  tarjetaCanvas(cv => {
+    const a = document.createElement('a');
+    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente-' + state.seed + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+function compartir(el){
+  const v = veredicto();
+  const url = location.href.split('#')[0] + '#s=' + state.seed;
+  const texto = `Mi gestión en ${state.club.nombre}: «${v.titulo}» (${v.score}/100). ¿Podés hacerlo mejor?`;
+  const copiar = () => { try{ navigator.clipboard.writeText(texto + ' ' + url); el.textContent = '✔ Copiado'; }catch(e){ el.textContent = url; } };
+  if(!navigator.share){ copiar(); return; }
+  tarjetaCanvas(cv => cv.toBlob(blob => {
+    const file = blob ? new File([blob], 'volvete-dirigente.png', { type:'image/png' }) : null;
+    const data = file && navigator.canShare && navigator.canShare({ files:[file] }) ? { text:texto, url, files:[file] } : { text:texto, url };
+    navigator.share(data).catch(() => {});
+  }, 'image/png'));
+}
 function refrescarPreviewCrear(){
   const p = document.querySelector('.preview');
   if(p){
@@ -277,7 +318,7 @@ function refrescarPreviewCrear(){
 }
 
 /* ---------- tarjeta descargable ---------- */
-function descargarTarjeta(){
+function tarjetaCanvas(cb){
   const v = veredicto(), s = state.stats, c = state.club;
   const W = 1080, H = 1350;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -295,16 +336,14 @@ function descargarTarjeta(){
     txt(c.nombre, 990, 64, '#e8e4d8', '900');
     txt(DIFICULTAD_INFO[c.dif].label + ' · ' + ((paisPorCode(c.paisCode) || {}).nombre || ''), 1040, 34, '#9aa3b2', '400');
     txt(v.titulo, 1110, 52, '#d8b45a', '900');
-    const stats = [['Resultado', signo(s.resultado)], ['Gestión', Math.round(s.gestion)], ['Prensa', Math.round(s.prensa)], ['Caja', fmtCaja(s.caja)]];
+    const stats = [['Resultado', signo(s.resultado)], ['Gestión', Math.round(s.gestion)], ['Prensa', Math.round(s.prensa)], ['Caja', fmtCaja(s.caja)], ['Vestuario', Math.round(s.vestuario)]];
     stats.forEach(([k, val], i) => {
-      const x = 150 + i * 260;
+      const x = 140 + i * 200;
       g.fillStyle = '#e8e4d8'; g.font = '900 50px Georgia'; g.fillText(String(val), x, 1190);
       g.fillStyle = '#9aa3b2'; g.font = '400 26px Georgia'; g.fillText(k, x, 1228);
     });
     txt('Semilla ' + state.seed + ' · Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
-    const a = document.createElement('a');
-    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente-' + state.seed + '.png';
-    document.body.appendChild(a); a.click(); a.remove();
+    cb(cv);
   };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
@@ -364,14 +403,16 @@ function onAct(act, v, el){
       if(!j || state.stats.caja < precio || state.plantel.length >= 26) break;
       state.stats.caja -= precio;
       asignarDorsal(state.plantel, j, state.rng);
-      state.plantel.push(j);
+      state.plantel.push(j); state.fichajes++;
       ui.mercado.splice(Number(v), 1);
       break; }
     case 'actualizarMercado': ui.mercado = generarCandidatosMercado(state.rng, state.club, 6); break;
     case 'arrancar': ui.screen = 'evento'; ui.volverA = 'evento'; break;
-    case 'opcion': elegirOpcion(Number(v)); break;
+    case 'opcion': elegirOpcion(Number(v)); { const r = state.resultado.d; feedback((r.gestion + r.prensa + r.resultado + r.vestuario) >= 0); } break;
     case 'siguiente': siguienteEvento(); break;
-    case 'irFinal': ui.screen = 'final'; break;
+    case 'irFinal': guardarHist(); ui.screen = 'final'; break;
+    case 'toggleSonido': toggleSonido(); break;
+    case 'compartir': compartir(el); return;
     case 'descargarTarjeta': descargarTarjeta(); return;
     case 'copiarSemilla':
       try{ navigator.clipboard.writeText(v); el.textContent = '✔ Link copiado'; }catch(e){ el.textContent = v; }
@@ -380,7 +421,9 @@ function onAct(act, v, el){
   render();
 }
 function leerSeed(){
-  const n = Number(String(ui.seed).replace(/\D/g, ''));
+  // la semilla solo viene de un link compartido (#s=...) y se consume una vez; si no, es aleatoria
+  const n = Number(String(ui.seed || '').replace(/\D/g, ''));
+  ui.seed = null;
   return n > 0 ? n : Math.floor(Math.random() * 1e9);
 }
 app.addEventListener('click', e => {
@@ -391,7 +434,6 @@ app.addEventListener('click', e => {
 app.addEventListener('input', e => {
   const el = e.target, k = el.dataset.in;
   if(!k) return;
-  if(k === 'seed'){ ui.seed = el.value; return; }
   if(k === 'busqueda'){ ui.cfg.busqueda = el.value; document.getElementById('listaPaises').innerHTML = listaPaises(); return; }
   if(k === 'nombre'){ ui.cfg.nombre = el.value; ui.cfg.aviso = false; const b = document.getElementById('btnConfirmarClub'); if(b) b.disabled = el.value.trim().length < 2; refrescarPreviewCrear(); return; }
   if(k === 'ciudad'){ ui.cfg.ciudad = el.value; return; }
