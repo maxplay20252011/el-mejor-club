@@ -790,6 +790,26 @@ const PLANTILLAS_EVENTOS = [
     O('Sancionar a los involucrados','Mano dura',D(1,3,-2,0,-5),'Sancionaste a los involucrados: la prensa aplaudió, el vestuario se enfrió.'),
   ] },
 
+{ id:'cons_capitan_renuncia', cat:'institucional', jugador:'capitan', requiere:'vestuario_critico',
+  titulo:'El capitán quiere irse',
+  contexto:'{JUGADOR}, el capitán, te pide hablar: {MOTIVO}. Si se va, el grupo queda sin referente.',
+  variables:{ MOTIVO:['dice que ya no se siente respaldado','está harto del clima en el vestuario','recibió una oferta y está tentado'] },
+  opciones:[
+    O('Convencerlo con una mejora de contrato','Cuesta plata, ordena el grupo',D(1,1,2,-80,15),'{JUGADOR} renovó y volvió a ordenar al grupo.'),
+    O('Reunirte con todo el plantel','Poner las cartas sobre la mesa',D(2,0,1,0,8),'La reunión fue áspera, pero el grupo salió más unido.'),
+    O('Dejarlo ir','Cortás por lo sano',D(-3,-3,-5,40,-5),'{JUGADOR} se fue. Entró plata, pero el vestuario quedó huérfano.',VENDE),
+  ] },
+
+{ id:'cons_vestuario_oro', cat:'deportivo', jugador:null, requiere:'vestuario_oro',
+  titulo:'El plantel se juega por vos',
+  contexto:'El grupo está tan unido que {GESTO}. Es el mejor momento para pedirles un esfuerzo extra.',
+  variables:{ GESTO:['los referentes proponen renovar con rebaja','los juveniles piden entrenar doble turno','el plantel organizó un asado con los socios'] },
+  opciones:[
+    O('Aprovechar el envión','Exigir más, sin costo',D(1,2,4,0,-4),'Pediste más y respondieron en la cancha, aunque el grupo notó el tirón.'),
+    O('Premiarlos con un viaje','Cuidar el clima',D(1,3,1,-60,6),'El viaje fue un éxito: el grupo está a muerte con vos.'),
+    O('Dejar todo como está','No tocar lo que funciona',D(1,1,2,0,2),'No tocaste nada. A veces es la mejor decisión.'),
+  ] },
+
 { id:'dep_arquero_apuro', cat:'deportivo', jugador:'fichaje:ARQ', cond:'pocos_arqueros',
   titulo:'Te quedaste sin arqueros',
   contexto:'El plantel cuenta con un solo arquero y el técnico no quiere jugar la suerte. Aparece {JUGADOR}, arquero de {JEDAD} años y nivel {JRATING}.',

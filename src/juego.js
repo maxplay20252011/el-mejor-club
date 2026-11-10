@@ -160,7 +160,8 @@ function aplicarOpcion(op, ev, ctx){
   }
   if(d.vestuario == null) d.vestuario = derivarVestuario(d, ev, op, r, ctx);
   if(ev.cat === 'deportivo'){
-    if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
+    if(state.stats.vestuario < 15){ d.resultado -= 4; notas.push('🔥 Vestuario en llamas: −4 al resultado'); }
+    else if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
     else if(state.stats.vestuario >= 75){ d.resultado += 2; notas.push('🧑‍🤝‍🧑 Vestuario unido: +2 al resultado'); }
   }
   const bueno = (d.gestion + d.prensa + d.resultado) > 0;
@@ -188,6 +189,11 @@ function aplicarOpcion(op, ev, ctx){
     state.vendidos = state.vendidos.filter(x => x !== j);
     notas.push('✍️ ' + j.nombreCompleto + ' se suma al plantel (#' + j.dorsal + ')');
   }
+  if(state.idx >= 5){   // la presión de la expectativa crece en la segunda mitad
+    const rf = state.stats.resultado + d.resultado, dif = state.club.dif;
+    if(dif === 'facil' && rf < 0){ d.gestion -= 3; notas.push('📣 La tribuna de un grande no espera: −3 a gestión'); }
+    else if(dif === 'medio' && rf < -6){ d.gestion -= 2; notas.push('📣 La tribuna se impacienta: −2 a gestión'); }
+  }
   const antes = { ...state.stats };
   state.stats.gestion = clamp(state.stats.gestion + d.gestion, 0, 100);
   state.stats.prensa = clamp(state.stats.prensa + d.prensa, 0, 100);
@@ -212,7 +218,9 @@ function elegirOpcion(i){
   else {
     const d = res.d;
     const autos = [
+      ['vestuario_critico', state.stats.vestuario < 20],
       ['vestuario_roto', state.stats.vestuario < 30],
+      ['vestuario_oro', state.stats.vestuario >= 85],
       ['vendio_figura', res.vendioFigura],
       ['recorte', ev.cat === 'economico' && d.caja >= 60 && d.gestion <= 0],
       ['prensa_enojada', ev.cat === 'mediatico' && d.prensa <= -5],
@@ -224,6 +232,7 @@ function elegirOpcion(i){
   if(state.stats.gestion <= 0) state.fin = 'destituido';
   else if(state.stats.caja <= -250) state.fin = 'quiebra';
   else if(state.stats.vestuario <= 0) state.fin = 'motin';
+  if(state.fin) borrarGuardado();
   ui.screen = 'resultado';
 }
 function insertarEncadenado(flag){
@@ -239,11 +248,21 @@ function siguienteEvento(){
   state.idx++;
   state.ctx = null;
   state.resultado = null;
-  if(state.fin || state.idx >= state.eventos.length){ ui.screen = 'diario'; return; }
+  if(state.fin || state.idx >= state.eventos.length){ borrarGuardado(); ui.screen = 'diario'; return; }
+  guardarPartida();
   ui.screen = 'evento';
 }
 
 /* ---------- veredicto / titulares ---------- */
+const OBJETIVOS = {
+  facil:   { texto:'Pelear el campeonato: resultado de +8 o más y gestión de 60 o más.', ok: s => s.resultado >= 8 && s.gestion >= 60 },
+  medio:   { texto:'Clasificar a copa: resultado de +3 o más sin gastar más del 30% de la caja.', ok: (s, ci) => s.resultado >= 3 && s.caja >= ci * 0.7 },
+  dificil: { texto:'Sobrevivir: evitar el descenso (resultado de −4 o más) y cerrar con caja positiva.', ok: s => s.resultado >= -4 && s.caja >= 0 },
+};
+function objetivo(){
+  const o = OBJETIVOS[state.club.dif];
+  return { texto: o.texto, cumplido: !!o.ok(state.stats, state.cajaInicial) };
+}
 function calcularScore(){
   const s = state.stats;
   const resNorm = clamp(50 + s.resultado, 0, 100);
@@ -259,12 +278,15 @@ const VEREDICTOS = [
 ];
 function veredicto(){
   let sc = calcularScore();
+  sc += objetivo().cumplido ? 6 : -4;
   if(state.club.dif === 'dificil') sc += 10; else if(state.club.dif === 'facil') sc -= 8;
   const v = VEREDICTOS.find(x => sc >= x.min) || VEREDICTOS[VEREDICTOS.length - 1];
   let extra = '';
   if(state.fin === 'destituido') extra = 'La hinchada perdió la confianza: te destituyeron antes de terminar la temporada.';
   if(state.fin === 'motin') extra = 'El plantel se declaró en rebeldía: sin vestuario no hay club que se sostenga.';
   if(state.fin === 'quiebra') extra = 'El club quebró con vos al mando: caja en rojo y sin salida.';
+  const ob = objetivo();
+  if(!state.fin) extra = (extra ? extra + ' ' : '') + (ob.cumplido ? 'Objetivo cumplido.' : 'Objetivo incumplido.');
   return { titulo: state.fin ? 'Mandato interrumpido' : v.titulo, texto: v[state.club.dif], extra, score: Math.round(sc) };
 }
 function tresTitulares(){
@@ -345,6 +367,7 @@ function logros(){
   if(!fin && state.cajaInicial > 0 && s.caja >= state.cajaInicial * 1.25) L.push(['🏦', 'Caja de hierro', 'Cerraste con 25% más de caja que al empezar.']);
   if(!fin && s.gestion < 35) L.push(['🧗', 'Sobreviviente', 'Llegaste al final con la gestión por el piso.']);
   if(!fin && Math.min(s.gestion, s.prensa, s.vestuario) >= 55) L.push(['⚖️', 'Equilibrista', 'Gestión, prensa y vestuario por encima de 55.']);
+  if(!fin && objetivo().cumplido) L.push(['🎯', 'Objetivo cumplido', 'Lograste la meta de la temporada.']);
   if(state.encadenados >= 3) L.push(['🎲', 'Efecto dominó', 'Tus decisiones volvieron a buscarte 3 veces o más.']);
   return L;
 }
@@ -373,4 +396,26 @@ function feedback(bueno){
       o.connect(g); g.connect(SFX.ctx.destination); o.start(t); o.stop(t + 0.2);
     });
   }catch(e){}
+}
+
+/* ---------- partida guardada (entre evento y evento) ---------- */
+const SAVE_KEY = 'vd_save_v1';
+function guardarPartida(){
+  if(!state || state.fin) return;
+  try{
+    const s = Object.assign({}, state, { rng: state.rng.estado(), rngEv: state.rngEv.estado(), ctx: null, resultado: null });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, f: Date.now(), state: s }));
+  }catch(e){}
+}
+function hayGuardado(){
+  try{ const g = JSON.parse(localStorage.getItem(SAVE_KEY)); return g && g.v === 1 && g.state && g.state.club ? g : null; }catch(e){ return null; }
+}
+function borrarGuardado(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function cargarPartida(){
+  const g = hayGuardado();
+  if(!g) return false;
+  const s = g.state;
+  s.rng = mulberry32(s.rng); s.rngEv = mulberry32(s.rngEv);
+  state = s; ui.mercado = []; ui.slotAbierto = null; ui.screen = 'evento'; ui.volverA = 'evento';
+  return true;
 }

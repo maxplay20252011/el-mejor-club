@@ -1225,6 +1225,26 @@ const PLANTILLAS_EVENTOS = [
     O('Sancionar a los involucrados','Mano dura',D(1,3,-2,0,-5),'Sancionaste a los involucrados: la prensa aplaudió, el vestuario se enfrió.'),
   ] },
 
+{ id:'cons_capitan_renuncia', cat:'institucional', jugador:'capitan', requiere:'vestuario_critico',
+  titulo:'El capitán quiere irse',
+  contexto:'{JUGADOR}, el capitán, te pide hablar: {MOTIVO}. Si se va, el grupo queda sin referente.',
+  variables:{ MOTIVO:['dice que ya no se siente respaldado','está harto del clima en el vestuario','recibió una oferta y está tentado'] },
+  opciones:[
+    O('Convencerlo con una mejora de contrato','Cuesta plata, ordena el grupo',D(1,1,2,-80,15),'{JUGADOR} renovó y volvió a ordenar al grupo.'),
+    O('Reunirte con todo el plantel','Poner las cartas sobre la mesa',D(2,0,1,0,8),'La reunión fue áspera, pero el grupo salió más unido.'),
+    O('Dejarlo ir','Cortás por lo sano',D(-3,-3,-5,40,-5),'{JUGADOR} se fue. Entró plata, pero el vestuario quedó huérfano.',VENDE),
+  ] },
+
+{ id:'cons_vestuario_oro', cat:'deportivo', jugador:null, requiere:'vestuario_oro',
+  titulo:'El plantel se juega por vos',
+  contexto:'El grupo está tan unido que {GESTO}. Es el mejor momento para pedirles un esfuerzo extra.',
+  variables:{ GESTO:['los referentes proponen renovar con rebaja','los juveniles piden entrenar doble turno','el plantel organizó un asado con los socios'] },
+  opciones:[
+    O('Aprovechar el envión','Exigir más, sin costo',D(1,2,4,0,-4),'Pediste más y respondieron en la cancha, aunque el grupo notó el tirón.'),
+    O('Premiarlos con un viaje','Cuidar el clima',D(1,3,1,-60,6),'El viaje fue un éxito: el grupo está a muerte con vos.'),
+    O('Dejar todo como está','No tocar lo que funciona',D(1,1,2,0,2),'No tocaste nada. A veces es la mejor decisión.'),
+  ] },
+
 { id:'dep_arquero_apuro', cat:'deportivo', jugador:'fichaje:ARQ', cond:'pocos_arqueros',
   titulo:'Te quedaste sin arqueros',
   contexto:'El plantel cuenta con un solo arquero y el técnico no quiere jugar la suerte. Aparece {JUGADOR}, arquero de {JEDAD} años y nivel {JRATING}.',
@@ -1799,12 +1819,14 @@ function hashStr(s){
   return h >>> 0;
 }
 function mulberry32(a){
-  return function(){
+  const f = function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
     let t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
+  f.estado = () => a | 0;   // permite guardar y retomar la secuencia exacta
+  return f;
 }
 
 const DIFICULTAD_INFO = {
@@ -2245,7 +2267,8 @@ function aplicarOpcion(op, ev, ctx){
   }
   if(d.vestuario == null) d.vestuario = derivarVestuario(d, ev, op, r, ctx);
   if(ev.cat === 'deportivo'){
-    if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
+    if(state.stats.vestuario < 15){ d.resultado -= 4; notas.push('🔥 Vestuario en llamas: −4 al resultado'); }
+    else if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
     else if(state.stats.vestuario >= 75){ d.resultado += 2; notas.push('🧑‍🤝‍🧑 Vestuario unido: +2 al resultado'); }
   }
   const bueno = (d.gestion + d.prensa + d.resultado) > 0;
@@ -2273,6 +2296,11 @@ function aplicarOpcion(op, ev, ctx){
     state.vendidos = state.vendidos.filter(x => x !== j);
     notas.push('✍️ ' + j.nombreCompleto + ' se suma al plantel (#' + j.dorsal + ')');
   }
+  if(state.idx >= 5){   // la presión de la expectativa crece en la segunda mitad
+    const rf = state.stats.resultado + d.resultado, dif = state.club.dif;
+    if(dif === 'facil' && rf < 0){ d.gestion -= 3; notas.push('📣 La tribuna de un grande no espera: −3 a gestión'); }
+    else if(dif === 'medio' && rf < -6){ d.gestion -= 2; notas.push('📣 La tribuna se impacienta: −2 a gestión'); }
+  }
   const antes = { ...state.stats };
   state.stats.gestion = clamp(state.stats.gestion + d.gestion, 0, 100);
   state.stats.prensa = clamp(state.stats.prensa + d.prensa, 0, 100);
@@ -2297,7 +2325,9 @@ function elegirOpcion(i){
   else {
     const d = res.d;
     const autos = [
+      ['vestuario_critico', state.stats.vestuario < 20],
       ['vestuario_roto', state.stats.vestuario < 30],
+      ['vestuario_oro', state.stats.vestuario >= 85],
       ['vendio_figura', res.vendioFigura],
       ['recorte', ev.cat === 'economico' && d.caja >= 60 && d.gestion <= 0],
       ['prensa_enojada', ev.cat === 'mediatico' && d.prensa <= -5],
@@ -2309,6 +2339,7 @@ function elegirOpcion(i){
   if(state.stats.gestion <= 0) state.fin = 'destituido';
   else if(state.stats.caja <= -250) state.fin = 'quiebra';
   else if(state.stats.vestuario <= 0) state.fin = 'motin';
+  if(state.fin) borrarGuardado();
   ui.screen = 'resultado';
 }
 function insertarEncadenado(flag){
@@ -2324,11 +2355,21 @@ function siguienteEvento(){
   state.idx++;
   state.ctx = null;
   state.resultado = null;
-  if(state.fin || state.idx >= state.eventos.length){ ui.screen = 'diario'; return; }
+  if(state.fin || state.idx >= state.eventos.length){ borrarGuardado(); ui.screen = 'diario'; return; }
+  guardarPartida();
   ui.screen = 'evento';
 }
 
 /* ---------- veredicto / titulares ---------- */
+const OBJETIVOS = {
+  facil:   { texto:'Pelear el campeonato: resultado de +8 o más y gestión de 60 o más.', ok: s => s.resultado >= 8 && s.gestion >= 60 },
+  medio:   { texto:'Clasificar a copa: resultado de +3 o más sin gastar más del 30% de la caja.', ok: (s, ci) => s.resultado >= 3 && s.caja >= ci * 0.7 },
+  dificil: { texto:'Sobrevivir: evitar el descenso (resultado de −4 o más) y cerrar con caja positiva.', ok: s => s.resultado >= -4 && s.caja >= 0 },
+};
+function objetivo(){
+  const o = OBJETIVOS[state.club.dif];
+  return { texto: o.texto, cumplido: !!o.ok(state.stats, state.cajaInicial) };
+}
 function calcularScore(){
   const s = state.stats;
   const resNorm = clamp(50 + s.resultado, 0, 100);
@@ -2344,12 +2385,15 @@ const VEREDICTOS = [
 ];
 function veredicto(){
   let sc = calcularScore();
+  sc += objetivo().cumplido ? 6 : -4;
   if(state.club.dif === 'dificil') sc += 10; else if(state.club.dif === 'facil') sc -= 8;
   const v = VEREDICTOS.find(x => sc >= x.min) || VEREDICTOS[VEREDICTOS.length - 1];
   let extra = '';
   if(state.fin === 'destituido') extra = 'La hinchada perdió la confianza: te destituyeron antes de terminar la temporada.';
   if(state.fin === 'motin') extra = 'El plantel se declaró en rebeldía: sin vestuario no hay club que se sostenga.';
   if(state.fin === 'quiebra') extra = 'El club quebró con vos al mando: caja en rojo y sin salida.';
+  const ob = objetivo();
+  if(!state.fin) extra = (extra ? extra + ' ' : '') + (ob.cumplido ? 'Objetivo cumplido.' : 'Objetivo incumplido.');
   return { titulo: state.fin ? 'Mandato interrumpido' : v.titulo, texto: v[state.club.dif], extra, score: Math.round(sc) };
 }
 function tresTitulares(){
@@ -2430,6 +2474,7 @@ function logros(){
   if(!fin && state.cajaInicial > 0 && s.caja >= state.cajaInicial * 1.25) L.push(['🏦', 'Caja de hierro', 'Cerraste con 25% más de caja que al empezar.']);
   if(!fin && s.gestion < 35) L.push(['🧗', 'Sobreviviente', 'Llegaste al final con la gestión por el piso.']);
   if(!fin && Math.min(s.gestion, s.prensa, s.vestuario) >= 55) L.push(['⚖️', 'Equilibrista', 'Gestión, prensa y vestuario por encima de 55.']);
+  if(!fin && objetivo().cumplido) L.push(['🎯', 'Objetivo cumplido', 'Lograste la meta de la temporada.']);
   if(state.encadenados >= 3) L.push(['🎲', 'Efecto dominó', 'Tus decisiones volvieron a buscarte 3 veces o más.']);
   return L;
 }
@@ -2458,6 +2503,28 @@ function feedback(bueno){
       o.connect(g); g.connect(SFX.ctx.destination); o.start(t); o.stop(t + 0.2);
     });
   }catch(e){}
+}
+
+/* ---------- partida guardada (entre evento y evento) ---------- */
+const SAVE_KEY = 'vd_save_v1';
+function guardarPartida(){
+  if(!state || state.fin) return;
+  try{
+    const s = Object.assign({}, state, { rng: state.rng.estado(), rngEv: state.rngEv.estado(), ctx: null, resultado: null });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, f: Date.now(), state: s }));
+  }catch(e){}
+}
+function hayGuardado(){
+  try{ const g = JSON.parse(localStorage.getItem(SAVE_KEY)); return g && g.v === 1 && g.state && g.state.club ? g : null; }catch(e){ return null; }
+}
+function borrarGuardado(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function cargarPartida(){
+  const g = hayGuardado();
+  if(!g) return false;
+  const s = g.state;
+  s.rng = mulberry32(s.rng); s.rngEv = mulberry32(s.rngEv);
+  state = s; ui.mercado = []; ui.slotAbierto = null; ui.screen = 'evento'; ui.volverA = 'evento';
+  return true;
 }
 
 /* ===== ui.js ===== */
@@ -2493,11 +2560,18 @@ function playerChip(j, extra){
 function disclaimer(){ return '<div class="foot">Juego de ficción no oficial, sin afiliación con los clubes mencionados. Todos los escudos son generados: ninguno reproduce el de un club real.</div>'; }
 
 /* ---------- pantallas ---------- */
+function continuarHtml(){
+  const g = hayGuardado();
+  if(!g) return '';
+  const s = g.state;
+  return `<button class="btn primary" data-act="continuar">▶ Continuar: ${esc(s.club.nombre)} (evento ${s.idx + 1} de ${s.eventos.length})</button>`;
+}
 function pantallaInicio(){
   return `<div class="screen center">
     <div class="logo">🏟</div>
     <h1>Volvete Dirigente</h1>
     <p class="mut">Una temporada al frente de un club. Trece decisiones. Ningún final obvio.</p>
+    ${continuarHtml()}
     <button class="btn primary" data-act="irCrear">Crear mi propio club</button>
     <button class="btn" data-act="irElegir">Elegir un club existente</button>
     ${historialHtml()}
@@ -2633,6 +2707,7 @@ function pantallaPresupuesto(){
   return `<div class="screen center">
     <h2>Presupuesto de la temporada</h2>
     <div class="big">${fmtCaja(state.stats.caja)}</div>
+    <div class="nota">🎯 Objetivo: ${esc(objetivo().texto)}</div>
     <p class="mut">Con esta plata sostenés sueldos, fichajes e imprevistos durante toda la temporada. Si la caja se hunde, el club corre riesgo de quiebra.</p>
     <button class="btn" data-act="irMercado">🛒 Ir al mercado antes de arrancar</button>
     <button class="btn" data-act="irPlantel">👥 Ver plantel</button>
@@ -2680,7 +2755,7 @@ function pantallaEvento(){
   const ctx = state.ctx;
   return `<div class="screen">${hud()}
     <div class="progress"><div style="width:${(state.idx / state.eventos.length) * 100}%"></div></div>
-    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat}</div>
+    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat} · 🎯 ${objetivo().cumplido ? 'objetivo en camino' : 'objetivo en riesgo'}</div>
     <h2>${esc(sustituirTexto(ev.titulo, ctx))}</h2>
     ${playerChip(ctx.jugador)}
     <p class="ctx">${esc(sustituirTexto(ev.contexto, ctx))}</p>
@@ -2719,6 +2794,7 @@ function pantallaFinal(){
     <h1 class="verd">${esc(v.titulo)}</h1>
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
     <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
+    <div class="nota">🎯 ${esc(objetivo().texto)} <b>${state.fin ? 'No cumplido' : objetivo().cumplido ? 'Cumplido ✔' : 'No cumplido ✘'}</b></div>
     ${logrosHtml()}
     <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
     <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
@@ -2866,7 +2942,8 @@ function onAct(act, v, el){
       ui.mercado.splice(Number(v), 1);
       break; }
     case 'actualizarMercado': ui.mercado = generarCandidatosMercado(state.rng, state.club, 6); break;
-    case 'arrancar': ui.screen = 'evento'; ui.volverA = 'evento'; break;
+    case 'arrancar': guardarPartida(); ui.screen = 'evento'; ui.volverA = 'evento'; break;
+    case 'continuar': cargarPartida(); break;
     case 'opcion': elegirOpcion(Number(v)); { const r = state.resultado.d; feedback((r.gestion + r.prensa + r.resultado + r.vestuario) >= 0); } break;
     case 'siguiente': siguienteEvento(); break;
     case 'irFinal': guardarHist(); ui.screen = 'final'; break;

@@ -30,11 +30,18 @@ function playerChip(j, extra){
 function disclaimer(){ return '<div class="foot">Juego de ficción no oficial, sin afiliación con los clubes mencionados. Todos los escudos son generados: ninguno reproduce el de un club real.</div>'; }
 
 /* ---------- pantallas ---------- */
+function continuarHtml(){
+  const g = hayGuardado();
+  if(!g) return '';
+  const s = g.state;
+  return `<button class="btn primary" data-act="continuar">▶ Continuar: ${esc(s.club.nombre)} (evento ${s.idx + 1} de ${s.eventos.length})</button>`;
+}
 function pantallaInicio(){
   return `<div class="screen center">
     <div class="logo">🏟</div>
     <h1>Volvete Dirigente</h1>
     <p class="mut">Una temporada al frente de un club. Trece decisiones. Ningún final obvio.</p>
+    ${continuarHtml()}
     <button class="btn primary" data-act="irCrear">Crear mi propio club</button>
     <button class="btn" data-act="irElegir">Elegir un club existente</button>
     ${historialHtml()}
@@ -170,6 +177,7 @@ function pantallaPresupuesto(){
   return `<div class="screen center">
     <h2>Presupuesto de la temporada</h2>
     <div class="big">${fmtCaja(state.stats.caja)}</div>
+    <div class="nota">🎯 Objetivo: ${esc(objetivo().texto)}</div>
     <p class="mut">Con esta plata sostenés sueldos, fichajes e imprevistos durante toda la temporada. Si la caja se hunde, el club corre riesgo de quiebra.</p>
     <button class="btn" data-act="irMercado">🛒 Ir al mercado antes de arrancar</button>
     <button class="btn" data-act="irPlantel">👥 Ver plantel</button>
@@ -217,7 +225,7 @@ function pantallaEvento(){
   const ctx = state.ctx;
   return `<div class="screen">${hud()}
     <div class="progress"><div style="width:${(state.idx / state.eventos.length) * 100}%"></div></div>
-    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat}</div>
+    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat} · 🎯 ${objetivo().cumplido ? 'objetivo en camino' : 'objetivo en riesgo'}</div>
     <h2>${esc(sustituirTexto(ev.titulo, ctx))}</h2>
     ${playerChip(ctx.jugador)}
     <p class="ctx">${esc(sustituirTexto(ev.contexto, ctx))}</p>
@@ -256,6 +264,7 @@ function pantallaFinal(){
     <h1 class="verd">${esc(v.titulo)}</h1>
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
     <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
+    <div class="nota">🎯 ${esc(objetivo().texto)} <b>${state.fin ? 'No cumplido' : objetivo().cumplido ? 'Cumplido ✔' : 'No cumplido ✘'}</b></div>
     ${logrosHtml()}
     <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
     <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
@@ -403,7 +412,8 @@ function onAct(act, v, el){
       ui.mercado.splice(Number(v), 1);
       break; }
     case 'actualizarMercado': ui.mercado = generarCandidatosMercado(state.rng, state.club, 6); break;
-    case 'arrancar': ui.screen = 'evento'; ui.volverA = 'evento'; break;
+    case 'arrancar': guardarPartida(); ui.screen = 'evento'; ui.volverA = 'evento'; break;
+    case 'continuar': cargarPartida(); break;
     case 'opcion': elegirOpcion(Number(v)); { const r = state.resultado.d; feedback((r.gestion + r.prensa + r.resultado + r.vestuario) >= 0); } break;
     case 'siguiente': siguienteEvento(); break;
     case 'irFinal': guardarHist(); ui.screen = 'final'; break;
