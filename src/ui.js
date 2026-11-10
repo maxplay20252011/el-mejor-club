@@ -250,7 +250,6 @@ function pantallaDiario(){
 }
 function pantallaFinal(){
   const v = veredicto(), s = state.stats;
-  const url = location.href.split('#')[0] + '#s=' + state.seed;
   return `<div class="screen center">
     ${crestSvg(state.club.crest, 'lg')}
     <h2>${esc(state.club.nombre)}</h2><div class="mut">${bandera(state.club.paisCode)} ${DIFICULTAD_INFO[state.club.dif].label}</div>
@@ -258,10 +257,8 @@ function pantallaFinal(){
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
     <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
     ${logrosHtml()}
-    <div class="mut">Semilla ${state.seed}</div>
     <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
     <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
-    <button class="btn" data-act="copiarSemilla" data-v="${esc(url)}">🔗 Copiar link de esta temporada</button>
     <button class="btn" data-act="irInicio">Jugar de nuevo</button>
     ${disclaimer()}</div>`;
 }
@@ -293,19 +290,18 @@ function render(){
 function descargarTarjeta(){
   tarjetaCanvas(cv => {
     const a = document.createElement('a');
-    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente-' + state.seed + '.png';
+    a.href = cv.toDataURL('image/png'); a.download = 'volvete-dirigente.png';
     document.body.appendChild(a); a.click(); a.remove();
   });
 }
 function compartir(el){
   const v = veredicto();
-  const url = location.href.split('#')[0] + '#s=' + state.seed;
   const texto = `Mi gestión en ${state.club.nombre}: «${v.titulo}» (${v.score}/100). ¿Podés hacerlo mejor?`;
-  const copiar = () => { try{ navigator.clipboard.writeText(texto + ' ' + url); el.textContent = '✔ Copiado'; }catch(e){ el.textContent = url; } };
+  const copiar = () => { try{ navigator.clipboard.writeText(texto); el.textContent = '✔ Copiado'; }catch(e){ el.textContent = texto; } };
   if(!navigator.share){ copiar(); return; }
   tarjetaCanvas(cv => cv.toBlob(blob => {
     const file = blob ? new File([blob], 'volvete-dirigente.png', { type:'image/png' }) : null;
-    const data = file && navigator.canShare && navigator.canShare({ files:[file] }) ? { text:texto, url, files:[file] } : { text:texto, url };
+    const data = file && navigator.canShare && navigator.canShare({ files:[file] }) ? { text:texto, files:[file] } : { text:texto };
     navigator.share(data).catch(() => {});
   }, 'image/png'));
 }
@@ -342,7 +338,7 @@ function tarjetaCanvas(cb){
       g.fillStyle = '#e8e4d8'; g.font = '900 50px Georgia'; g.fillText(String(val), x, 1190);
       g.fillStyle = '#9aa3b2'; g.font = '400 26px Georgia'; g.fillText(k, x, 1228);
     });
-    txt('Semilla ' + state.seed + ' · Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
+    txt('Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
     cb(cv);
   };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -414,14 +410,11 @@ function onAct(act, v, el){
     case 'toggleSonido': toggleSonido(); break;
     case 'compartir': compartir(el); return;
     case 'descargarTarjeta': descargarTarjeta(); return;
-    case 'copiarSemilla':
-      try{ navigator.clipboard.writeText(v); el.textContent = '✔ Link copiado'; }catch(e){ el.textContent = v; }
-      return;
   }
   render();
 }
 function leerSeed(){
-  // la semilla solo viene de un link compartido (#s=...) y se consume una vez; si no, es aleatoria
+  // cada partida usa una semilla aleatoria
   const n = Number(String(ui.seed || '').replace(/\D/g, ''));
   ui.seed = null;
   return n > 0 ? n : Math.floor(Math.random() * 1e9);
@@ -453,7 +446,5 @@ app.addEventListener('input', e => {
 /* ---------- arranque ---------- */
 (function arranque(){
   inicializarPool();
-  const m = location.hash.match(/s=(\d+)/);
-  if(m) ui.seed = m[1];
   render();
 })();

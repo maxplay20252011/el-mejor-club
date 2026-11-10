@@ -154,6 +154,10 @@ function aplicarOpcion(op, ev, ctx){
   } else r = { d: op.d, msg: op.msg };
   const d = Object.assign({ gestion:0, prensa:0, resultado:0, caja:0 }, r.d || {});
   const notas = [];
+  if(state.club.dif === 'facil'){            // un grande no perdona: lo malo pega 25% más
+    if(d.gestion < 0) d.gestion = Math.round(d.gestion * 1.25);
+    if(d.prensa < 0) d.prensa = Math.round(d.prensa * 1.25);
+  }
   if(d.vestuario == null) d.vestuario = derivarVestuario(d, ev, op, r, ctx);
   if(ev.cat === 'deportivo'){
     if(state.stats.vestuario < 30){ d.resultado -= 2; notas.push('🧑‍🤝‍🧑 Vestuario roto: −2 al resultado'); }
@@ -243,8 +247,8 @@ function siguienteEvento(){
 function calcularScore(){
   const s = state.stats;
   const resNorm = clamp(50 + s.resultado, 0, 100);
-  const cajaNorm = clamp(50 + (s.caja - state.cajaInicial) / Math.max(60, state.cajaInicial * 0.6) * 50, 0, 100);
-  return 0.25 * s.gestion + 0.15 * s.prensa + 0.3 * resNorm + 0.15 * cajaNorm + 0.15 * s.vestuario;
+  const cajaNorm = clamp(50 + (s.caja - state.cajaInicial) / Math.max(100, state.cajaInicial) * 50, 0, 100);
+  return 0.28 * s.gestion + 0.15 * s.prensa + 0.3 * resNorm + 0.1 * cajaNorm + 0.17 * s.vestuario;
 }
 const VEREDICTOS = [
   { min:78, titulo:'Leyenda de la dirigencia', facil:'Gestión impecable, pero con este club era lo mínimo que se esperaba: no te alcanza para la estatua.', medio:'Una temporada redonda. Los socios piden que no te vayas nunca.', dificil:'Una hazaña. Con tan poco, lograste lo que nadie esperaba: te van a hacer un mural.' },
