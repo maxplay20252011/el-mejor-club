@@ -10,7 +10,8 @@
 :root{--bg:#0b0e13;--panel:#171b22;--panel2:#1e2430;--line:#2a3140;--gold:#d8b45a;--text:#e8e4d8;--mut:#9aa3b2;--ok:#3ddc84;--bad:#e5534b;--acc:#4fb5e0;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;}
-#app{max-width:520px;margin:0 auto;padding:16px 16px 40px;min-height:100vh;}
+html{-webkit-text-size-adjust:100%;}
+#app{--w:520px;max-width:var(--w);margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));min-height:100vh;min-height:100dvh;}
 h1,h2{font-family:Unbounded,Inter,sans-serif;margin:8px 0;line-height:1.2;}
 h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
 .mut{color:var(--mut);font-size:.82rem;} .center{text-align:center;} .grow{flex:1;text-align:left;}
@@ -62,13 +63,58 @@ h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
 .tag{font-style:normal;font-size:.68rem;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:1px 6px;margin-left:4px;color:var(--mut);white-space:nowrap;}
 .logros{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;} .logro{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;} .logro span{font-size:1.5rem;} .logro small{display:block;color:var(--mut);font-size:.72rem;}
 .hist{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.8rem;display:flex;flex-direction:column;gap:4px;} .hrow{display:flex;justify-content:space-between;gap:8px;}
+
+.flag{width:20px;height:15px;vertical-align:-2px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px #0005;}
+.pitch{max-width:480px;margin-left:auto;margin-right:auto;}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+@media (hover:hover){
+  .opt:hover,.club-card:not(.static):hover,.carga:hover,.shape:hover,.pais:hover,.tab:hover{border-color:var(--gold);}
+  .btn:not(:disabled):hover{filter:brightness(1.12);}
+}
+@media (pointer:coarse){ .sw{width:40px;height:40px;} .pais{padding:9px 11px;} .btn.sm{padding:11px 14px;} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+/* celulares chicos */
+@media (max-width:400px){
+  .shapes{grid-template-columns:repeat(4,1fr);} h1{font-size:1.45rem;} .btn{padding:12px;}
+  .hud-v{font-size:.92rem;} .hud-l{font-size:.55rem;} .final-stats b{font-size:.9rem;}
+}
+@media (max-width:340px){ .hud{grid-template-columns:repeat(3,1fr);} .final-stats{grid-template-columns:repeat(3,1fr);} }
+/* celular horizontal */
+@media (max-height:520px) and (orientation:landscape){ .preview{position:static;} .crest.lg{width:130px;} .logo{font-size:2rem;margin-top:0;} }
+/* tablet */
+@media (min-width:700px){
+  html{font-size:17px;} #app{--w:720px;}
+  .paises{max-height:220px;} .cargas{max-height:340px;grid-template-columns:repeat(4,1fr);}
+  #app[data-screen=elegir] .list,#app[data-screen=mercado] .list,#app[data-screen=plantel] .list{display:grid;grid-template-columns:1fr 1fr;}
+  #app[data-screen=elegir],#app[data-screen=mercado],#app[data-screen=plantel]{--w:900px;}
+  #app[data-screen=final] .logros{display:grid;grid-template-columns:1fr 1fr;}
+  .crest.lg{width:240px;}
+}
+/* escritorio y pantallas grandes */
+@media (min-width:1000px){
+  #app[data-screen=elegir],#app[data-screen=mercado],#app[data-screen=plantel]{--w:1100px;}
+  #app[data-screen=elegir] .list{grid-template-columns:repeat(3,1fr);}
+  #app[data-screen=evento],#app[data-screen=resultado]{--w:820px;} .ctx{font-size:1.1rem;} .opt b{font-size:1.05rem;} .opt span{font-size:.88rem;}
+  #app[data-screen=tabla],#app[data-screen=diario],#app[data-screen=final],#app[data-screen=presupuesto]{--w:680px;}
+  #app[data-screen=crear]{--w:1120px;}
+  #app[data-screen=crear] .screen{display:grid;grid-template-columns:360px minmax(0,1fr);column-gap:32px;row-gap:10px;align-items:start;}
+  #app[data-screen=crear] .screen>*{grid-column:2;}
+  #app[data-screen=crear] .screen>.top{grid-column:1/-1;grid-row:1;}
+  #app[data-screen=crear] .screen>.preview{grid-column:1;grid-row:2/span 80;position:sticky;top:12px;}
+  #app[data-screen=crear] .crest.lg{width:280px;}
+  #app[data-screen=formacion]{--w:1020px;}
+  #app[data-screen=formacion] .screen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;row-gap:10px;align-items:start;}
+  #app[data-screen=formacion] .screen>*{grid-column:2;}
+  #app[data-screen=formacion] .screen>.pitch{grid-column:1;grid-row:1/span 8;max-width:none;width:min(100%,calc((100vh - 60px)*.75));width:min(100%,calc((100dvh - 60px)*.75));}
+}
+@media (min-width:1500px){ html{font-size:18px;} #app[data-screen=mercado] .list,#app[data-screen=plantel] .list{grid-template-columns:repeat(3,1fr);} }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
 /* ===== paises.js ===== */
-/* Datos de países: PAISES (195), GLYPHS, SIMBOLOS_POR_PAIS (6 por país).
+/* Datos de países: PAISES (195 + 20 selecciones y territorios), GLYPHS, SIMBOLOS_POR_PAIS (6 por país).
    Tabla compacta decodificada al final del bloque; solo `const` globales. */
 
 const GLYPHS = ['ave','ave_vuelo','cuadrupedo','felino','cuernos','pez','reptil','mariposa','flor','hoja','arbol','palmera','espiga','fruto','montana','volcan','ola','isla','rio','duna','sol','luna','estrella','instrumento_cuerda','tambor','flauta','vasija','barco','herramienta','rueda_dentada','grano','mineral','taza','balon'];
@@ -129,7 +175,8 @@ const PAISES = (function(){
 'UG|Uganda|nor|ll,ru|ag|af','UA|Ucrania|ao|ll|ag,in|ee','AE|Emiratos Árabes Unidos|vrn|de,co|mi|me','GB|Reino Unido|rap|is,co,ui|in,tb|an',
 'US|Estados Unidos|arp|na,ll,ui|in,te|an','UY|Uruguay|cpo|sa,ll,co|ag|hi','UZ|Uzbekistán|cpv|de|ag,as|ee','VU|Vanuatu|rvo|is|ag|an',
 'VE|Venezuela|oar|sa,co,se|mi|hi','VN|Vietnam|ro|se,co|ag|sa','YE|Yemen|rpn|de,co|ag|me','ZM|Zambia|vrn|ll|mi|af',
-'ZW|Zimbabue|vor|ll|ag,mi|af','VA|Santa Sede|op|ui|as|ec','PS|Palestina|npv|mo|ag|me'
+'ZW|Zimbabue|vor|ll|ag,mi|af','VA|Santa Sede|op|ui|as|ec','PS|Palestina|npv|mo|ag|me',
+'ENG|Inglaterra|pr|co,is|in,tb|an','SCT|Escocia|ap|co,mo|pq,tb|an','WLS|Gales|prv|mo,co|mi,tb|an','NIR|Irlanda del Norte|pr|co,ru|ag,tb|an','TW|Taiwán|rap|is,mo,co|te,in|ao','XK|Kosovo|aop|mo|ag|ee','HK|Hong Kong|rp|ui,co,po|in|ao','MO|Macao|vpo|ui,co|te|ao','PR|Puerto Rico|rpa|ca,is,co|ag|hi','FO|Islas Feroe|par|is,co|pq|ec','GI|Gibraltar|pr|co,po|tb|an','CW|Curazao|aop|ca,is,co|pq|ec','AW|Aruba|co|ca,is,co|te|ec','BM|Bermudas|rpa|is,co|tb|an','GU|Guam|ar|is,co|pq|an','GL|Groenlandia|rp|ar,is,co|pq|ec','NC|Nueva Caledonia|arvo|is,co|mi|ec','PF|Tahití|rp|is,co|pq|ec','KY|Islas Caimán|arp|ca,is,co|pq|an','MQ|Martinica|apr|ca,is,co|ag|ec'
   ];
   const dec = (s, map) => s === '-' ? [] : s.split(',').map(k => map[k]);
   return T.map(row => {
@@ -261,7 +308,15 @@ IQ:['','palma_datilera|Palma datilera|palmera','tigris_eufrates|Ríos Tigris y �
 IL:['','ciclamen|Ciclamen|flor','mar_muerto|Mar Muerto|ola','','',''],
 JO:['orix|Órix|cuernos','iris_negro|Iris negro|flor','wadi_rum|Wadi Rum|duna','','fosfato|Fosfatos|mineral',''],
 LB:['','cedro|Cedro|arbol','monte_libano|Monte Líbano|montana','','',''],
-PS:['','olivo|Olivo|arbol','','','naranja_jaffa|Naranja de Jaffa|fruto','']
+PS:['','olivo|Olivo|arbol','','','naranja_jaffa|Naranja de Jaffa|fruto',''],
+ENG:['','rosa|Rosa|flor','','','','futbol|Fútbol|balon'],
+SCT:['','cardo|Cardo|flor','tierras_altas|Tierras Altas|montana','gaita|Gaita escocesa|flauta','','futbol|Fútbol|balon'],
+WLS:['','puerro|Puerro|hoja','snowdonia|Snowdonia|montana','arpa|Arpa galesa|instrumento_cuerda','mineria|Minería del carbón|mineral','futbol|Fútbol|balon'],
+NIR:['','trebol|Trébol|hoja','calzada|Calzada del Gigante|montana','','astilleros|Astilleros|barco','futbol|Fútbol|balon'],
+TW:['','orquidea|Orquídea|flor','yushan|Yu Shan|montana','','semiconductores|Semiconductores|rueda_dentada',''],
+HK:['','bauhinia|Bauhinia|flor','puerto|Puerto Victoria|ola','','',''],
+PR:['coqui|Coquí|reptil','maga|Flor de maga|flor','yunque|El Yunque|montana','cuatro|Cuatro puertorriqueño|instrumento_cuerda','cana|Caña de azúcar|espiga',''],
+FO:['frailecillo|Frailecillo|ave','','acantilados|Acantilados|montana','','pesca|Pesca|pez','']
   };
   const out = {};
   PAISES.forEach(p => {
@@ -1703,7 +1758,7 @@ const RIBBON_STYLES = 4;
 function ribbonMarkup(texto, hex, estilo){
   if(!texto) return '';
   const t = escapeXml(texto);
-  const txt = (y,sz) => `<text x="80" y="${y}" font-family="Georgia,serif" font-weight="700" font-size="${sz}" text-anchor="middle" fill="#1a1a1a">${t}</text>`;
+  const txt = (y,sz) => `<text x="80" y="${y}" font-family="Georgia,serif" font-weight="700" font-size="${Math.min(sz, 205 / Math.max(String(texto).length, 1)).toFixed(1)}" text-anchor="middle" fill="#1a1a1a">${t}</text>`;
   switch((estilo||0) % RIBBON_STYLES){
     case 1: return `<g><rect x="-6" y="206" width="172" height="26" rx="13" fill="${hex}" stroke="#00000055"/>${txt(224,13)}</g>`;
     case 2: return `<g><path d="M-8,206 Q80,198 168,206 L168,232 Q80,224 -8,232 Z" fill="${hex}" stroke="#00000055"/>${txt(224,13)}</g>`;
@@ -2198,9 +2253,18 @@ let POOL = [];
 let state = null;
 const ui = { screen:'inicio', tab:'facil', volverA:'evento', cfg:null, seed:null, slotAbierto:null, mercado:[], msg:null };
 
-function bandera(code){
+const BANDERA_TAGS = { ENG:'gbeng', SCT:'gbsct', WLS:'gbwls' };
+const BANDERA_CDN = { ENG:'gb-eng', SCT:'gb-sct', WLS:'gb-wls', NIR:'gb-nir' };
+function banderaEmoji(code){
+  if(BANDERA_TAGS[code]) return String.fromCodePoint(0x1F3F4, ...BANDERA_TAGS[code].split('').map(c => 0xE0000 + c.charCodeAt(0)), 0xE007F);
   if(!code || code.length !== 2) return '🏳';
   return String.fromCodePoint(...code.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+/* Imagen de bandera (Windows no dibuja los emojis de bandera); si no carga, cae al emoji. */
+function bandera(code){
+  const c = (BANDERA_CDN[code] || String(code || '').toLowerCase());
+  if(!/^[a-z-]{2,6}$/.test(c)) return banderaEmoji(code);
+  return `<img class="flag" src="https://flagcdn.com/w40/${c}.png" srcset="https://flagcdn.com/w80/${c}.png 2x" width="20" height="15" alt="${banderaEmoji(code)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtCaja(n){ return '$' + Math.round(n).toLocaleString('es-AR') + 'k'; }
@@ -2927,6 +2991,7 @@ const PANTALLAS = {
   evento: pantallaEvento, resultado: pantallaResultado, diario: pantallaDiario, final: pantallaFinal, tabla: pantallaTabla,
 };
 function render(){
+  app.dataset.screen = ui.screen;
   app.innerHTML = PANTALLAS[ui.screen]();
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);

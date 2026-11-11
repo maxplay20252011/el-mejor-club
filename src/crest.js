@@ -323,7 +323,7 @@ const RIBBON_STYLES = 4;
 function ribbonMarkup(texto, hex, estilo){
   if(!texto) return '';
   const t = escapeXml(texto);
-  const txt = (y,sz) => `<text x="80" y="${y}" font-family="Georgia,serif" font-weight="700" font-size="${sz}" text-anchor="middle" fill="#1a1a1a">${t}</text>`;
+  const txt = (y,sz) => `<text x="80" y="${y}" font-family="Georgia,serif" font-weight="700" font-size="${Math.min(sz, 205 / Math.max(String(texto).length, 1)).toFixed(1)}" text-anchor="middle" fill="#1a1a1a">${t}</text>`;
   switch((estilo||0) % RIBBON_STYLES){
     case 1: return `<g><rect x="-6" y="206" width="172" height="26" rx="13" fill="${hex}" stroke="#00000055"/>${txt(224,13)}</g>`;
     case 2: return `<g><path d="M-8,206 Q80,198 168,206 L168,232 Q80,224 -8,232 Z" fill="${hex}" stroke="#00000055"/>${txt(224,13)}</g>`;

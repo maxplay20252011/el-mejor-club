@@ -5,9 +5,18 @@ let POOL = [];
 let state = null;
 const ui = { screen:'inicio', tab:'facil', volverA:'evento', cfg:null, seed:null, slotAbierto:null, mercado:[], msg:null };
 
-function bandera(code){
+const BANDERA_TAGS = { ENG:'gbeng', SCT:'gbsct', WLS:'gbwls' };
+const BANDERA_CDN = { ENG:'gb-eng', SCT:'gb-sct', WLS:'gb-wls', NIR:'gb-nir' };
+function banderaEmoji(code){
+  if(BANDERA_TAGS[code]) return String.fromCodePoint(0x1F3F4, ...BANDERA_TAGS[code].split('').map(c => 0xE0000 + c.charCodeAt(0)), 0xE007F);
   if(!code || code.length !== 2) return '🏳';
   return String.fromCodePoint(...code.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+/* Imagen de bandera (Windows no dibuja los emojis de bandera); si no carga, cae al emoji. */
+function bandera(code){
+  const c = (BANDERA_CDN[code] || String(code || '').toLowerCase());
+  if(!/^[a-z-]{2,6}$/.test(c)) return banderaEmoji(code);
+  return `<img class="flag" src="https://flagcdn.com/w40/${c}.png" srcset="https://flagcdn.com/w80/${c}.png 2x" width="20" height="15" alt="${banderaEmoji(code)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtCaja(n){ return '$' + Math.round(n).toLocaleString('es-AR') + 'k'; }
