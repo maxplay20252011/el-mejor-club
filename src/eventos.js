@@ -845,6 +845,35 @@ const _instanciarOpcion = (op, vars) => {
   return o;
 };
 
+/* ---- ninguna opción puede ser claramente la correcta ----
+   Si una opción es igual o mejor en todo (esperanza de gestión, prensa, resultado, caja y vestuario),
+   la otra gana ahorro de caja: hacer menos o no actuar cuesta menos plata. */
+const _DIMS = ['gestion', 'prensa', 'resultado', 'caja', 'vestuario'];
+const _ramas = (o) => (o.azar ? [o.azar.ok.d, o.azar.mal.d] : [o.d]);
+const esperadoOpcion = (o) => {
+  const p = o.azar ? o.azar.p : 1, w = o.azar ? [p, 1 - p] : [1];
+  const e = {};
+  _DIMS.forEach(k => { e[k] = _ramas(o).reduce((a, d, i) => a + ((d && d[k]) || 0) * w[i], 0); });
+  return e;
+};
+const _vec = (e) => [e.gestion, e.prensa, e.resultado, e.caja / 60, e.vestuario];
+const dominaOpcion = (a, b) => {
+  const x = _vec(esperadoOpcion(a)), y = _vec(esperadoOpcion(b));
+  return x.every((v, i) => v >= y[i]) && x.some((v, i) => v > y[i]);
+};
+const equilibrarOpciones = (ops) => {
+  for (let vuelta = 0; vuelta < 5; vuelta++) {
+    let cambio = false;
+    for (const b of ops) {
+      if (!ops.some(a => a !== b && dominaOpcion(a, b))) continue;
+      _ramas(b).forEach(d => { d.caja = (d.caja || 0) + 45; });
+      cambio = true;
+    }
+    if (!cambio) break;
+  }
+  return ops;
+};
+
 const expandirPlantillas = (plantillas) => {
   const out = [];
   for (const p of plantillas) {
@@ -864,7 +893,7 @@ const expandirPlantillas = (plantillas) => {
       const ev = {
         id: p.id + '#' + i, plantilla: p.id, cat: p.cat, jugador: p.jugador,
         titulo: _sub(p.titulo, vars), contexto: _sub(p.contexto, vars),
-        opciones: p.opciones.map(op => _instanciarOpcion(op, vars)),
+        opciones: equilibrarOpciones(p.opciones.map(op => _instanciarOpcion(op, vars))),
       };
       if (p.requiere) ev.requiere = p.requiere;
       if (p.cond) ev.cond = p.cond;

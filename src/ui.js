@@ -225,13 +225,24 @@ function pantallaEvento(){
   const ctx = state.ctx;
   return `<div class="screen">${hud()}
     <div class="progress"><div style="width:${(state.idx / state.eventos.length) * 100}%"></div></div>
-    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat} · 🎯 ${objetivo().cumplido ? 'objetivo en camino' : 'objetivo en riesgo'}</div>
+    <div class="mut center">Evento ${state.idx + 1} de ${state.eventos.length} · ${CAT_LABEL[ev.cat] || ev.cat} · 🎯 ${objetivo().cumplido ? 'objetivo en camino' : 'objetivo en riesgo'} · 📊 ${ordinal(miPuesto(progresoTemporada()))}</div>
     <h2>${esc(sustituirTexto(ev.titulo, ctx))}</h2>
     ${playerChip(ctx.jugador)}
     <p class="ctx">${esc(sustituirTexto(ev.contexto, ctx))}</p>
     <div class="list">${ev.opciones.map((o, i) => `<button class="opt" data-act="opcion" data-v="${i}"><b>${esc(sustituirTexto(o.texto, ctx))}</b><span>${esc(sustituirTexto(o.sub || '', ctx))}${tagsOpcion(o)}</span></button>`).join('')}</div>
-    <div class="row3"><button class="btn ghost sm" data-act="irPlantel">👥 Plantel</button><button class="btn ghost sm" data-act="irMercado">🛒 Mercado</button><button class="btn ghost sm" data-act="irFormacion">📋 Formación</button></div>
+    <div class="row4"><button class="btn ghost sm" data-act="irPlantel">👥 Plantel</button><button class="btn ghost sm" data-act="irMercado">🛒 Mercado</button><button class="btn ghost sm" data-act="irFormacion">📋 Formación</button><button class="btn ghost sm" data-act="irTabla">📊 Tabla</button></div>
   </div>`;
+}
+function tablaHtml(p){
+  const filas = tablaLiga(p);
+  return `<div class="tabla">${filas.map(f => `<div class="trow ${f.yo ? 'yo' : ''} ${zonaLiga(f.pos)}"><span class="tp">${f.pos}</span><span class="tn">${esc(f.nombre)}</span><b>${f.pts}</b></div>`).join('')}</div>
+    <div class="mut center">🏆 1º · 🥉 2º-3º zona de copa · ⚠ 11º-12º descienden</div>`;
+}
+function pantallaTabla(){
+  const p = progresoTemporada(), pos = miPuesto(p);
+  return `<div class="screen">${hud()}<div class="top"><button class="btn ghost sm" data-act="volver">← Volver</button><h2>Tabla de posiciones</h2></div>
+    <p class="mut">Fecha ${Math.max(1, Math.round(p * (LIGA_N - 1) * 2))} de ${(LIGA_N - 1) * 2}. Vas ${ordinal(pos)}: ${ZONA_TXT[zonaLiga(pos)]}. Tus puntos dependen del resultado deportivo que acumulás.</p>
+    ${tablaHtml(p)}</div>`;
 }
 function pantallaResultado(){
   const r = state.resultado, d = r.d;
@@ -265,6 +276,7 @@ function pantallaFinal(){
     <p>${esc(v.texto)}</p>${v.extra ? `<p class="mut">${esc(v.extra)}</p>` : ''}
     <div class="final-stats"><div><b>${signo(s.resultado)}</b><small>Resultado</small></div><div><b>${Math.round(s.gestion)}</b><small>Gestión</small></div><div><b>${Math.round(s.prensa)}</b><small>Prensa</small></div><div><b>${fmtCaja(s.caja)}</b><small>Caja</small></div><div><b>${Math.round(s.vestuario)}</b><small>Vestuario</small></div></div>
     <div class="nota">🎯 ${esc(objetivo().texto)} <b>${state.fin ? 'No cumplido' : objetivo().cumplido ? 'Cumplido ✔' : 'No cumplido ✘'}</b></div>
+    <h3 class="sub">Tabla final</h3>${tablaHtml(1)}
     ${logrosHtml()}
     <button class="btn primary" data-act="compartir">📤 Compartir mi gestión</button>
     <button class="btn" data-act="descargarTarjeta">⬇ Descargar tarjeta</button>
@@ -289,7 +301,7 @@ function historialHtml(){
 const PANTALLAS = {
   inicio: pantallaInicio, elegir: pantallaElegir, crear: pantallaCrear, formacion: pantallaFormacion,
   presupuesto: pantallaPresupuesto, plantel: pantallaPlantel, mercado: pantallaMercado,
-  evento: pantallaEvento, resultado: pantallaResultado, diario: pantallaDiario, final: pantallaFinal,
+  evento: pantallaEvento, resultado: pantallaResultado, diario: pantallaDiario, final: pantallaFinal, tabla: pantallaTabla,
 };
 function render(){
   app.innerHTML = PANTALLAS[ui.screen]();
@@ -305,7 +317,8 @@ function descargarTarjeta(){
 }
 function compartir(el){
   const v = veredicto();
-  const texto = `Mi gestión en ${state.club.nombre}: «${v.titulo}» (${v.score}/100). ¿Podés hacerlo mejor?`;
+  const url = urlDelJuego();
+  const texto = `Mi gestión en ${state.club.nombre}: «${v.titulo}» (${v.score}/100)` + (state.fin ? '' : `, cerré ${ordinal(v.puesto)} de ${LIGA_N}`) + `. ¿Podés superarme?` + (url ? ' ' + url : '');
   const copiar = () => { try{ navigator.clipboard.writeText(texto); el.textContent = '✔ Copiado'; }catch(e){ el.textContent = texto; } };
   if(!navigator.share){ copiar(); return; }
   tarjetaCanvas(cv => cv.toBlob(blob => {
@@ -323,8 +336,20 @@ function refrescarPreviewCrear(){
 }
 
 /* ---------- tarjeta descargable ---------- */
+function urlDelJuego(){
+  return /^https?:$/.test(location.protocol) ? location.origin + location.pathname.replace(/index\.html$|volvete-dirigente\.html$/, '') : '';
+}
+function lineasAjustadas(g, texto, maxW){
+  const out = []; let linea = '';
+  texto.split(' ').forEach(w => {
+    const t = linea ? linea + ' ' + w : w;
+    if(g.measureText(t).width > maxW && linea){ out.push(linea); linea = w; } else linea = t;
+  });
+  if(linea) out.push(linea);
+  return out;
+}
 function tarjetaCanvas(cb){
-  const v = veredicto(), s = state.stats, c = state.club;
+  const v = veredicto(), s = state.stats, c = state.club, ob = objetivo();
   const W = 1080, H = 1350;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
@@ -333,21 +358,34 @@ function tarjetaCanvas(cb){
   g.strokeStyle = '#d8b45a'; g.lineWidth = 6; g.strokeRect(30, 30, W - 60, H - 60);
   g.textAlign = 'center';
   const txt = (t, y, size, color, w) => { g.fillStyle = color; g.font = (w || '700') + ' ' + size + 'px Georgia, serif'; g.fillText(t, W/2, y); };
-  txt('VOLVETE DIRIGENTE', 110, 44, '#d8b45a', '900');
-  const svg = buildCrestSVG(c.crest).replace('<svg ', '<svg width="480" height="768" ');
+  txt('VOLVETE DIRIGENTE', 100, 40, '#d8b45a', '900');
+  const svg = buildCrestSVG(c.crest).replace('<svg ', '<svg width="330" height="528" ');
   const img = new Image();
   img.onload = () => {
-    g.drawImage(img, W/2 - 240, 150, 480, 768);
-    txt(c.nombre, 990, 64, '#e8e4d8', '900');
-    txt(DIFICULTAD_INFO[c.dif].label + ' · ' + ((paisPorCode(c.paisCode) || {}).nombre || ''), 1040, 34, '#9aa3b2', '400');
-    txt(v.titulo, 1110, 52, '#d8b45a', '900');
+    g.drawImage(img, W/2 - 165, 125, 330, 528);
+    txt(c.nombre, 718, 58, '#e8e4d8', '900');
+    txt(DIFICULTAD_INFO[c.dif].label + ' · ' + ((paisPorCode(c.paisCode) || {}).nombre || ''), 762, 30, '#9aa3b2', '400');
+    txt(v.titulo, 830, 50, '#d8b45a', '900');
+    const pos = v.puesto, zona = state.fin ? 'Mandato interrumpido' : ZONA_TXT[zonaLiga(pos)];
+    txt((state.fin ? '' : 'Cerré ' + ordinal(pos) + ' de ' + LIGA_N + ' · ') + zona, 880, 32, '#e8e4d8', '700');
+    txt('🎯 ' + (state.fin || !ob.cumplido ? 'Objetivo incumplido' : 'Objetivo cumplido') + ' · Puntaje ' + v.score + '/100', 926, 30, state.fin || !ob.cumplido ? '#e5534b' : '#3ddc84', '700');
     const stats = [['Resultado', signo(s.resultado)], ['Gestión', Math.round(s.gestion)], ['Prensa', Math.round(s.prensa)], ['Caja', fmtCaja(s.caja)], ['Vestuario', Math.round(s.vestuario)]];
     stats.forEach(([k, val], i) => {
       const x = 140 + i * 200;
-      g.fillStyle = '#e8e4d8'; g.font = '900 50px Georgia'; g.fillText(String(val), x, 1190);
-      g.fillStyle = '#9aa3b2'; g.font = '400 26px Georgia'; g.fillText(k, x, 1228);
+      g.fillStyle = '#e8e4d8'; g.font = '900 44px Georgia'; g.fillText(String(val), x, 1002);
+      g.fillStyle = '#9aa3b2'; g.font = '400 24px Georgia'; g.fillText(k, x, 1036);
     });
-    txt('Juego de ficción no oficial', 1300, 24, '#6b7385', '400');
+    g.textAlign = 'left';
+    let y = 1096;
+    tresTitulares().slice(0, 2).forEach(t => {
+      g.font = '700 27px Georgia'; g.fillStyle = t.bueno ? '#7ddf9c' : '#f08a84';
+      lineasAjustadas(g, (t.bueno ? '▲ ' : '▼ ') + t.texto, W - 160).slice(0, 2).forEach(l => { g.fillText(l, 80, y); y += 34; });
+      y += 8;
+    });
+    g.textAlign = 'center';
+    const url = urlDelJuego();
+    txt('¿Podés superarme? Jugá y compará tu gestión', 1262, 30, '#d8b45a', '700');
+    txt(url ? url.replace(/^https?:\/\//, '') : 'Volvete Dirigente · Juego de ficción no oficial', 1300, 24, '#9aa3b2', '400');
     cb(cv);
   };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -401,6 +439,7 @@ function onAct(act, v, el){
     case 'irMercado': ui.volverA = ui.screen === 'presupuesto' ? 'presupuesto' : 'evento'; ui.screen = 'mercado'; break;
     case 'irPlantel': ui.volverA = ui.screen === 'presupuesto' ? 'presupuesto' : 'evento'; ui.screen = 'plantel'; break;
     case 'irFormacion': ui.volverA = 'evento'; ui.screen = 'formacion'; break;
+    case 'irTabla': ui.volverA = 'evento'; ui.screen = 'tabla'; break;
     case 'volver': ui.screen = ui.volverA; break;
     case 'comprar': {
       const j = ui.mercado[Number(v)];
