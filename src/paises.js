@@ -1,4 +1,4 @@
-/* Datos de países: PAISES (195), GLYPHS, SIMBOLOS_POR_PAIS (6 por país).
+/* Datos de países: PAISES (195 + 20 selecciones y territorios), GLYPHS, SIMBOLOS_POR_PAIS (6 por país).
    Tabla compacta decodificada al final del bloque; solo `const` globales. */
 
 const GLYPHS = ['ave','ave_vuelo','cuadrupedo','felino','cuernos','pez','reptil','mariposa','flor','hoja','arbol','palmera','espiga','fruto','montana','volcan','ola','isla','rio','duna','sol','luna','estrella','instrumento_cuerda','tambor','flauta','vasija','barco','herramienta','rueda_dentada','grano','mineral','taza','balon'];
@@ -59,7 +59,8 @@ const PAISES = (function(){
 'UG|Uganda|nor|ll,ru|ag|af','UA|Ucrania|ao|ll|ag,in|ee','AE|Emiratos Árabes Unidos|vrn|de,co|mi|me','GB|Reino Unido|rap|is,co,ui|in,tb|an',
 'US|Estados Unidos|arp|na,ll,ui|in,te|an','UY|Uruguay|cpo|sa,ll,co|ag|hi','UZ|Uzbekistán|cpv|de|ag,as|ee','VU|Vanuatu|rvo|is|ag|an',
 'VE|Venezuela|oar|sa,co,se|mi|hi','VN|Vietnam|ro|se,co|ag|sa','YE|Yemen|rpn|de,co|ag|me','ZM|Zambia|vrn|ll|mi|af',
-'ZW|Zimbabue|vor|ll|ag,mi|af','VA|Santa Sede|op|ui|as|ec','PS|Palestina|npv|mo|ag|me'
+'ZW|Zimbabue|vor|ll|ag,mi|af','VA|Santa Sede|op|ui|as|ec','PS|Palestina|npv|mo|ag|me',
+'ENG|Inglaterra|pr|co,is|in,tb|an','SCT|Escocia|ap|co,mo|pq,tb|an','WLS|Gales|prv|mo,co|mi,tb|an','NIR|Irlanda del Norte|pr|co,ru|ag,tb|an','TW|Taiwán|rap|is,mo,co|te,in|ao','XK|Kosovo|aop|mo|ag|ee','HK|Hong Kong|rp|ui,co,po|in|ao','MO|Macao|vpo|ui,co|te|ao','PR|Puerto Rico|rpa|ca,is,co|ag|hi','FO|Islas Feroe|par|is,co|pq|ec','GI|Gibraltar|pr|co,po|tb|an','CW|Curazao|aop|ca,is,co|pq|ec','AW|Aruba|co|ca,is,co|te|ec','BM|Bermudas|rpa|is,co|tb|an','GU|Guam|ar|is,co|pq|an','GL|Groenlandia|rp|ar,is,co|pq|ec','NC|Nueva Caledonia|arvo|is,co|mi|ec','PF|Tahití|rp|is,co|pq|ec','KY|Islas Caimán|arp|ca,is,co|pq|an','MQ|Martinica|apr|ca,is,co|ag|ec'
   ];
   const dec = (s, map) => s === '-' ? [] : s.split(',').map(k => map[k]);
   return T.map(row => {
@@ -191,7 +192,15 @@ IQ:['','palma_datilera|Palma datilera|palmera','tigris_eufrates|Ríos Tigris y �
 IL:['','ciclamen|Ciclamen|flor','mar_muerto|Mar Muerto|ola','','',''],
 JO:['orix|Órix|cuernos','iris_negro|Iris negro|flor','wadi_rum|Wadi Rum|duna','','fosfato|Fosfatos|mineral',''],
 LB:['','cedro|Cedro|arbol','monte_libano|Monte Líbano|montana','','',''],
-PS:['','olivo|Olivo|arbol','','','naranja_jaffa|Naranja de Jaffa|fruto','']
+PS:['','olivo|Olivo|arbol','','','naranja_jaffa|Naranja de Jaffa|fruto',''],
+ENG:['','rosa|Rosa|flor','','','','futbol|Fútbol|balon'],
+SCT:['','cardo|Cardo|flor','tierras_altas|Tierras Altas|montana','gaita|Gaita escocesa|flauta','','futbol|Fútbol|balon'],
+WLS:['','puerro|Puerro|hoja','snowdonia|Snowdonia|montana','arpa|Arpa galesa|instrumento_cuerda','mineria|Minería del carbón|mineral','futbol|Fútbol|balon'],
+NIR:['','trebol|Trébol|hoja','calzada|Calzada del Gigante|montana','','astilleros|Astilleros|barco','futbol|Fútbol|balon'],
+TW:['','orquidea|Orquídea|flor','yushan|Yu Shan|montana','','semiconductores|Semiconductores|rueda_dentada',''],
+HK:['','bauhinia|Bauhinia|flor','puerto|Puerto Victoria|ola','','',''],
+PR:['coqui|Coquí|reptil','maga|Flor de maga|flor','yunque|El Yunque|montana','cuatro|Cuatro puertorriqueño|instrumento_cuerda','cana|Caña de azúcar|espiga',''],
+FO:['frailecillo|Frailecillo|ave','','acantilados|Acantilados|montana','','pesca|Pesca|pez','']
   };
   const out = {};
   PAISES.forEach(p => {

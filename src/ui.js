@@ -304,6 +304,7 @@ const PANTALLAS = {
   evento: pantallaEvento, resultado: pantallaResultado, diario: pantallaDiario, final: pantallaFinal, tabla: pantallaTabla,
 };
 function render(){
+  app.dataset.screen = ui.screen;
   app.innerHTML = PANTALLAS[ui.screen]();
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);
