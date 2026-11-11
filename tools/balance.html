@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Volvete Dirigente — tests de balance</title>
+<style>body{font:14px system-ui;background:#0b0e13;color:#e8e4d8;padding:16px;max-width:900px;margin:auto}table{border-collapse:collapse;width:100%;margin:8px 0}td,th{border:1px solid #2a3140;padding:4px 8px;text-align:left;font-size:12px}.ok{color:#3ddc84}.bad{color:#e5534b}.mut{color:#9aa3b2}h2{color:#d8b45a}code{background:#1e2430;padding:1px 4px}</style>
+</head><body>
+<h1>Tests de balance</h1>
+<p class="mut">Abrir con un servidor estático (por ejemplo <code>python -m http.server</code> en la raíz del repo) en <code>/tools/balance.html?n=200</code>. No toca la partida guardada del juego.</p>
+<div id="out">Corriendo…</div>
+<script src="../src/paises.js"></script><script src="../src/nombres.js"></script><script src="../src/eventos.js"></script>
+<script src="../src/crest.js"></script><script src="../src/clubes.js"></script><script src="../src/jugadores.js"></script>
+<script src="../src/liga.js"></script><script src="../src/juego.js"></script>
+<script>
+guardarPartida = function(){}; borrarGuardado = function(){}; guardarHist = function(){};
+const N = Number(new URLSearchParams(location.search).get('n')) || 200;
+const LIM = {            // umbrales de salud del balance (política "azar")
+  finPrematuroMax: 0.45,  // destituido / quiebra / motín
+  leyendaMax: 0.20, leyendaAlcanzableMin: 0.03,
+  objetivoMin: 0.10, objetivoMax: 0.85,
+  campeonMax: 0.30,
+  dominadosMax: 0.10,     // % de eventos con una opción estrictamente mejor que otra
+  coberturaMin: 0.75,     // % del pool que aparece al menos una vez
+};
+const checks = [];
+const check = (nombre, ok, detalle) => checks.push({ nombre, ok, detalle });
+inicializarPool();
+const D0 = { gestion:0, prensa:0, resultado:0, caja:0, vestuario:0 };
+const esperado = esperadoOpcion;   // misma definición que usa el motor para equilibrar opciones
+const suma = d => d.gestion + d.prensa + d.resultado + (d.vestuario || 0) + d.caja / 100;
+const politicas = {
+  azar: (ops, rnd) => Math.floor(rnd() * ops.length),
+  prudente: ops => { let b = 0, bv = -1e9; ops.forEach((o, i) => { const d = Object.assign({}, D0, o.azar ? o.azar.mal.d : o.d); if(suma(d) > bv){ bv = suma(d); b = i; } }); return b; },
+  ahorrador: ops => { let b = 0, bv = -1e9; ops.forEach((o, i) => { const d = o.azar ? o.azar.ok.d : o.d; if((d.caja || 0) > bv){ bv = d.caja || 0; b = i; } }); return b; },
+  esperado: ops => { let b = 0, bv = -1e9; ops.forEach((o, i) => { const e = esperado(o); const s = suma(e); if(s > bv){ bv = s; b = i; } }); return b; },
+};
+const aparecio = new Set();
+const res = [];
+for(const dif of ['facil','medio','dificil']){
+  const clubes = CLUBES.filter(c => c.dif === dif);
+  for(const [pn, pol] of Object.entries(politicas)){
+    const r = { n:0, fin:0, leyenda:0, obj:0, camp:0, desc:0, score:0, pos:0, eventos:0 };
+    for(let i = 0; i < N; i++){
+      const c = clubes[i % clubes.length];
+      const seed = 1000 + i * 7919, rnd = mulberry32(seed ^ 0xABCDEF);
+      iniciarPartida({ nombre:c.nombre, ciudad:'', paisCode:c.paisCode, dif:c.dif, stats:c.stats, crest:c.crest }, seed);
+      let guard = 0;
+      while(ui.screen !== 'diario' && guard++ < 40){
+        const ev = eventoActual(); if(!ev) break;
+        aparecio.add(ev.id);
+        state.ctx = ctxParaEvento(ev);
+        elegirOpcion(pol(ev.opciones, rnd));
+        siguienteEvento();
+      }
+      const v = veredicto(), pos = v.puesto;
+      r.n++; r.score += v.score; r.pos += pos; r.eventos += state.historial.length;
+      if(state.fin) r.fin++;
+      if(!state.fin && v.titulo === 'Leyenda de la dirigencia') r.leyenda++;
+      if(!state.fin && objetivo().cumplido) r.obj++;
+      if(!state.fin && pos === 1) r.camp++;
+      if(!state.fin && zonaLiga(pos) === 'descenso') r.desc++;
+    }
+    res.push({ dif, pol:pn, ...r });
+  }
+}
+res.filter(r => r.pol === 'azar').forEach(r => {
+  const p = k => r[k] / r.n;
+  check(r.dif + ' · azar · finales prematuros ≤ ' + LIM.finPrematuroMax * 100 + '%', p('fin') <= LIM.finPrematuroMax, Math.round(p('fin') * 100) + '%');
+  check(r.dif + ' · azar · "Leyenda" ≤ ' + LIM.leyendaMax * 100 + '%', p('leyenda') <= LIM.leyendaMax, Math.round(p('leyenda') * 100) + '%');
+  check(r.dif + ' · azar · objetivo cumplido entre ' + LIM.objetivoMin * 100 + '% y ' + LIM.objetivoMax * 100 + '%', p('obj') >= LIM.objetivoMin && p('obj') <= LIM.objetivoMax, Math.round(p('obj') * 100) + '%');
+  check(r.dif + ' · azar · campeón ≤ ' + LIM.campeonMax * 100 + '%', p('camp') <= LIM.campeonMax, Math.round(p('camp') * 100) + '%');
+});
+['facil','medio','dificil'].forEach(dif => {
+  const mejor = Math.max(...res.filter(r => r.dif === dif).map(r => r.leyenda / r.n));
+  check(dif + ' · "Leyenda" alcanzable por alguna política ≥ ' + LIM.leyendaAlcanzableMin * 100 + '%', mejor >= LIM.leyendaAlcanzableMin, Math.round(mejor * 1000) / 10 + '%');
+});
+const a = auditarEventos(POOL);
+check('Pool: ids duplicados', a.idsDuplicados.length === 0, a.idsDuplicados.length);
+check('Pool: tokens desconocidos', a.tokensDesconocidos.length === 0, a.tokensDesconocidos.length);
+check('Pool: opciones inválidas', a.opcionesInvalidas.length === 0, a.opcionesInvalidas.length);
+const dominados = [];
+POOL.forEach(ev => { const ops = ev.opciones; for(let i = 0; i < ops.length; i++) for(let j = 0; j < ops.length; j++) if(i !== j && dominaOpcion(ops[i], ops[j])){ dominados.push(ev.id + ': «' + ops[i].texto + '» > «' + ops[j].texto + '»'); return; } });
+check('Eventos con una opción estrictamente mejor que otra ≤ ' + LIM.dominadosMax * 100 + '%', dominados.length / POOL.length <= LIM.dominadosMax, dominados.length + ' de ' + POOL.length);
+const cobertura = [...aparecio].filter(id => POOL.some(e => e.id === id)).length / POOL.length;
+check('Cobertura del pool ≥ ' + LIM.coberturaMin * 100 + '% (con ' + N * 12 + ' partidas)', cobertura >= LIM.coberturaMin, Math.round(cobertura * 100) + '%');
+
+const pct = (x, n) => Math.round(100 * x / n) + '%';
+document.getElementById('out').innerHTML =
+  '<h2>Resultados por dificultad y política (' + N + ' partidas c/u)</h2><table><tr><th>Dif</th><th>Política</th><th>Score</th><th>Puesto medio</th><th>Prematuros</th><th>Leyenda</th><th>Objetivo</th><th>Campeón</th><th>Descenso</th></tr>' +
+  res.map(r => `<tr><td>${r.dif}</td><td>${r.pol}</td><td>${Math.round(r.score / r.n)}</td><td>${(r.pos / r.n).toFixed(1)}</td><td>${pct(r.fin, r.n)}</td><td>${pct(r.leyenda, r.n)}</td><td>${pct(r.obj, r.n)}</td><td>${pct(r.camp, r.n)}</td><td>${pct(r.desc, r.n)}</td></tr>`).join('') + '</table>' +
+  '<h2>Chequeos</h2><table>' + checks.map(c => `<tr><td class="${c.ok ? 'ok' : 'bad'}">${c.ok ? 'OK' : 'FALLA'}</td><td>${c.nombre}</td><td>${c.detalle}</td></tr>`).join('') + '</table>' +
+  '<h2>Eventos con opción dominante (primeros 25)</h2><ul>' + dominados.slice(0, 25).map(d => '<li>' + d.replace(/</g, '&lt;') + '</li>').join('') + '</ul>';
+window.__balance = { res, checks, dominados, cobertura };
+</script></body></html>

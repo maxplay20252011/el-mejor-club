@@ -1,6 +1,6 @@
 import os, sys
 here = os.path.dirname(os.path.abspath(__file__))
-order = ['paises.js', 'nombres.js', 'eventos.js', 'crest.js', 'clubes.js', 'jugadores.js', 'juego.js', 'ui.js']
+order = ['paises.js', 'nombres.js', 'eventos.js', 'crest.js', 'clubes.js', 'jugadores.js', 'liga.js', 'juego.js', 'ui.js']
 parts = []
 faltan = [f for f in order if not os.path.exists(os.path.join(here, f))]
 if faltan:

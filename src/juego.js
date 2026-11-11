@@ -70,6 +70,7 @@ function iniciarPartida(clubData, seed){
     eventos: m.eventos, reservas: m.reservas, idx: 0,
     flags: {}, historial: [], ctx: null, resultado: null, fin: null,
     vendidos: [], ventas: 0, fichajes: 0, encadenados: 0, guardado: false,
+    liga: crearLiga(seed, clubData.nombre),
   };
   state.club.crest = { ...clubData.crest, nombre: clubData.crest.nombre || null };
   ui.mercado = [];
@@ -270,7 +271,7 @@ function calcularScore(){
   return 0.28 * s.gestion + 0.15 * s.prensa + 0.3 * resNorm + 0.1 * cajaNorm + 0.17 * s.vestuario;
 }
 const VEREDICTOS = [
-  { min:78, titulo:'Leyenda de la dirigencia', facil:'Gestión impecable, pero con este club era lo mínimo que se esperaba: no te alcanza para la estatua.', medio:'Una temporada redonda. Los socios piden que no te vayas nunca.', dificil:'Una hazaña. Con tan poco, lograste lo que nadie esperaba: te van a hacer un mural.' },
+  { min:72, titulo:'Leyenda de la dirigencia', facil:'Gestión impecable, pero con este club era lo mínimo que se esperaba: no te alcanza para la estatua.', medio:'Una temporada redonda. Los socios piden que no te vayas nunca.', dificil:'Una hazaña. Con tan poco, lograste lo que nadie esperaba: te van a hacer un mural.' },
   { min:62, titulo:'Dirigente de respeto', facil:'Cumpliste. En un club así, cumplir es no hacer ruido, y no hiciste ruido.', medio:'Buena temporada con sus sombras. Seguís en pie y con crédito.', dificil:'Sobreviviste y encima con crédito. En tu categoría eso es una gran gestión.' },
   { min:46, titulo:'Mandato gris', facil:'Con este plantel y esta historia, un mandato gris es un fracaso silencioso.', medio:'Ni fu ni fa: la temporada pasa sin pena ni gloria.', dificil:'Gris pero entero. Para un club chico, no hundirse ya es un logro.' },
   { min:30, titulo:'Gestión cuestionada', facil:'Un desastre para un club de esta jerarquía. La prensa ya afila los lápices.', medio:'Errores de más y aciertos de menos. La asamblea se pone brava.', dificil:'Difícil de sostener, pero difícil el contexto también. Hay socios que te defienden.' },
@@ -279,15 +280,19 @@ const VEREDICTOS = [
 function veredicto(){
   let sc = calcularScore();
   sc += objetivo().cumplido ? 6 : -4;
-  if(state.club.dif === 'dificil') sc += 10; else if(state.club.dif === 'facil') sc -= 8;
+  if(state.club.dif === 'dificil') sc += 12; else if(state.club.dif === 'medio') sc += 6; else sc -= 8;
   const v = VEREDICTOS.find(x => sc >= x.min) || VEREDICTOS[VEREDICTOS.length - 1];
   let extra = '';
   if(state.fin === 'destituido') extra = 'La hinchada perdió la confianza: te destituyeron antes de terminar la temporada.';
   if(state.fin === 'motin') extra = 'El plantel se declaró en rebeldía: sin vestuario no hay club que se sostenga.';
   if(state.fin === 'quiebra') extra = 'El club quebró con vos al mando: caja en rojo y sin salida.';
   const ob = objetivo();
-  if(!state.fin) extra = (extra ? extra + ' ' : '') + (ob.cumplido ? 'Objetivo cumplido.' : 'Objetivo incumplido.');
-  return { titulo: state.fin ? 'Mandato interrumpido' : v.titulo, texto: v[state.club.dif], extra, score: Math.round(sc) };
+  const pos = miPuesto(1);
+  if(!state.fin){
+    extra = (extra ? extra + ' ' : '') + (ob.cumplido ? 'Objetivo cumplido.' : 'Objetivo incumplido.');
+    extra += ' Cerraste ' + ordinal(pos) + ' de ' + LIGA_N + (zonaLiga(pos) === 'descenso' ? ': el club desciende.' : zonaLiga(pos) === 'campeon' ? ': ¡campeón!' : '.');
+  }
+  return { titulo: state.fin ? 'Mandato interrumpido' : v.titulo, texto: v[state.club.dif], extra, score: Math.round(sc), puesto: pos };
 }
 function tresTitulares(){
   const top = state.historial.slice().sort((a,b) => b.impacto - a.impacto).slice(0, 3);
@@ -368,6 +373,8 @@ function logros(){
   if(!fin && s.gestion < 35) L.push(['🧗', 'Sobreviviente', 'Llegaste al final con la gestión por el piso.']);
   if(!fin && Math.min(s.gestion, s.prensa, s.vestuario) >= 55) L.push(['⚖️', 'Equilibrista', 'Gestión, prensa y vestuario por encima de 55.']);
   if(!fin && objetivo().cumplido) L.push(['🎯', 'Objetivo cumplido', 'Lograste la meta de la temporada.']);
+  if(!fin && miPuesto(1) === 1) L.push(['🏆', 'Campeón', 'Terminaste primero en la tabla.']);
+  if(!fin && zonaLiga(miPuesto(1)) === 'descenso') L.push(['🕳', 'Descenso', 'El club cerró en zona de descenso.']);
   if(state.encadenados >= 3) L.push(['🎲', 'Efecto dominó', 'Tus decisiones volvieron a buscarte 3 veces o más.']);
   return L;
 }

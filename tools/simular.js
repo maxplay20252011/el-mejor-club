@@ -1,7 +1,7 @@
 // Simula N temporadas por club/política y reporta finales. Uso: node tools/simular.js [N]
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const dir = path.join(__dirname, '..', 'src');
-const orden = ['paises.js','nombres.js','eventos.js','crest.js','clubes.js','jugadores.js','juego.js'];
+const orden = ['paises.js','nombres.js','eventos.js','crest.js','clubes.js','jugadores.js','liga.js','juego.js'];
 const ctx = { console, Math, Date, window:{}, navigator:{}, localStorage:{ getItem(){return null;}, setItem(){} }, document:{ getElementById(){ return null; } } };
 vm.createContext(ctx);
 vm.runInContext(orden.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n') + '\n;this.__x={get state(){return state;},iniciarPartida,inicializarPool,eventoActual,ctxParaEvento,elegirOpcion,siguienteEvento,veredicto,CLUBES,ui,get POOL(){return POOL;},mulberry32,auditarEventos};', ctx);
