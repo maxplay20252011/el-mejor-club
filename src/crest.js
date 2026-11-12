@@ -59,12 +59,17 @@ function simboloPorChargeId(chargeId){
   return lista.find(s => s.id === id) || null;
 }
 function chargeLabel(chargeId){
-  const s = simboloPorChargeId(chargeId);
-  return s ? s.nombre : (CHARGE_LABEL[chargeId] || chargeId);
+  if(typeof chargeId === 'string' && chargeId.indexOf('sym:') === 0){
+    const [, code, id] = chargeId.split(':');
+    const lista = (typeof SIMBOLOS_POR_PAIS !== 'undefined' && SIMBOLOS_POR_PAIS[code]) || [];
+    const idx = lista.findIndex(x => x.id === id);
+    if(idx >= 0) return nombreSimbolo(code, idx, lista[idx]);
+  }
+  return t('charge.' + chargeId);
 }
 function cargasSugeridasPorPais(code){
   const lista = (typeof SIMBOLOS_POR_PAIS !== 'undefined' && SIMBOLOS_POR_PAIS[code]) || [];
-  return lista.map(s => ({ id:'sym:'+code+':'+s.id, nombre:s.nombre, categoria:s.categoria, verificado:s.verificado }));
+  return lista.map((s, i) => ({ id:'sym:'+code+':'+s.id, nombre:nombreSimbolo(code, i, s), categoria:s.categoria, verificado:s.verificado }));
 }
 
 /* ---- temas regionales ---- */
@@ -364,7 +369,7 @@ function buildCrestSVG(p){
   const chargeHex = p.chargeTincture ? TINCTURE_HEX[p.chargeTincture] : (CHARGE_NATURAL[p.chargeId] ? '#8a6d3b' : '#1a1a1a');
   const chargeGlyph = p.chargeId ? chargeMarkup(p.chargeId, chargeHex, p) : '';
   const ornamentoHex = p.ornamentoTincture ? TINCTURE_HEX[p.ornamentoTincture] : TINCTURE_HEX.oro;
-  return `<svg viewBox="-20 -80 200 320" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="-20 -80 200 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <defs><clipPath id="${clipId}"><path d="${shapeD}"/></clipPath></defs>
     ${p.ornamento==='laurel' ? laurelMarkup(ornamentoHex, p.ornamentoVariante||0) : ''}
     ${starsRowMarkup(p.stars||0, TINCTURE_HEX.oro)}

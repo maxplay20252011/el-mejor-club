@@ -874,9 +874,33 @@ const equilibrarOpciones = (ops) => {
   return ops;
 };
 
-const expandirPlantillas = (plantillas) => {
+/* traducción de una plantilla: EVENTOS_I18N[lang][id] = { titulo, contexto, variables, opciones:[{texto, sub, msg | ok:{msg}, mal:{msg}}] }.
+   Si las variables no tienen la misma cantidad de valores que el original, se usa la versión en español. */
+const _traducirPlantilla = (p, tr) => {
+  const vars = p.variables || {};
+  if (tr.variables && !Object.keys(vars).every(k => Array.isArray(tr.variables[k]) && tr.variables[k].length === vars[k].length)) return p;
+  const q = Object.assign({}, p);
+  if (tr.titulo) q.titulo = tr.titulo;
+  if (tr.contexto) q.contexto = tr.contexto;
+  if (tr.variables) q.variables = tr.variables;
+  q.opciones = p.opciones.map((op, i) => {
+    const x = (tr.opciones || [])[i];
+    if (!x) return op;
+    const o = Object.assign({}, op);
+    if (x.texto) o.texto = x.texto;
+    if (x.sub) o.sub = x.sub;
+    if (op.azar) o.azar = { p: op.azar.p, ok: Object.assign({}, op.azar.ok, { msg: (x.ok && x.ok.msg) || op.azar.ok.msg }), mal: Object.assign({}, op.azar.mal, { msg: (x.mal && x.mal.msg) || op.azar.mal.msg }) };
+    else if (x.msg) o.msg = x.msg;
+    return o;
+  });
+  return q;
+};
+
+const expandirPlantillas = (plantillas, lang) => {
   const out = [];
-  for (const p of plantillas) {
+  const trs = (lang && lang !== 'es' && typeof EVENTOS_I18N !== 'undefined') ? EVENTOS_I18N[lang] : null;
+  for (const orig of plantillas) {
+    const p = trs && trs[orig.id] ? _traducirPlantilla(orig, trs[orig.id]) : orig;
     const keys = Object.keys(p.variables || {});
     let combos = [{}];
     for (const k of keys) {
@@ -897,6 +921,10 @@ const expandirPlantillas = (plantillas) => {
       };
       if (p.requiere) ev.requiere = p.requiere;
       if (p.cond) ev.cond = p.cond;
+      if (p.fase) ev.fase = p.fase;
+      if (p.paises) ev.paises = p.paises.slice();
+      if (p.geo) ev.geo = p.geo.slice();
+      if (p.cluster) ev.cluster = p.cluster.slice();
       out.push(ev);
     });
   }
@@ -904,8 +932,10 @@ const expandirPlantillas = (plantillas) => {
 };
 
 const auditarEventos = (evs) => {
-  const permitidos = ['JUGADOR', 'JPOS', 'JEDAD', 'JRATING', 'CLUB', 'CIUDAD'];
+  const permitidos = ['JUGADOR', 'JPOS', 'JEDAD', 'JRATING', 'CLUB', 'CIUDAD', 'PERIODISTA', 'HINCHA', 'EMPRESARIO', 'RIVAL', 'DT', 'PAIS'];
   const porCat = {}, ids = {}, textos = {}, desconocidos = [], idsDuplicados = [], pocasOpciones = [], opcionesInvalidas = [], textosDuplicados = [];
+  const porFase = {}, porPais = { paises: 0, geo: 0, cluster: 0 }, plantillasPorFase = {}, personajes = { PERIODISTA: 0, HINCHA: 0, EMPRESARIO: 0 };
+  const vistasPlantilla = {};
   let conJugador = 0;
   const flagsSetea = new Set(), flagsRequiere = new Set();
   const revisar = (ev, s) => {
@@ -926,10 +956,17 @@ const auditarEventos = (evs) => {
     textos[clave] = 1;
     if (!ev.opciones || ev.opciones.length < 2) pocasOpciones.push(ev.id);
     if (ev.requiere) flagsRequiere.add(ev.requiere);
+    if (ev.fase) { porFase[ev.fase] = (porFase[ev.fase] || 0) + 1; if (ev.plantilla && !vistasPlantilla['f:' + ev.plantilla]) { vistasPlantilla['f:' + ev.plantilla] = 1; plantillasPorFase[ev.fase] = (plantillasPorFase[ev.fase] || 0) + 1; } }
+    if (ev.paises) porPais.paises++;
+    if (ev.geo) porPais.geo++;
+    if (ev.cluster) porPais.cluster++;
+    const todoTexto = JSON.stringify([ev.titulo, ev.contexto, ev.opciones]);
+    Object.keys(personajes).forEach(k => { if (todoTexto.indexOf('{' + k + '}') >= 0) personajes[k]++; });
     revisar(ev, ev.titulo); revisar(ev, ev.contexto);
     for (const op of ev.opciones || []) {
       revisar(ev, op.texto); revisar(ev, op.sub);
       if (op.setea) flagsSetea.add(op.setea);
+      if (op.azar) { if (op.azar.ok.setea) flagsSetea.add(op.azar.ok.setea); if (op.azar.mal.setea) flagsSetea.add(op.azar.mal.setea); }
       if (op.azar) { revisar(ev, op.azar.ok.msg); revisar(ev, op.azar.mal.msg); if (!op.azar.ok.d || !op.azar.mal.d) opcionesInvalidas.push(ev.id); }
       else { revisar(ev, op.msg); if (!op.d) opcionesInvalidas.push(ev.id); }
     }
@@ -938,5 +975,6 @@ const auditarEventos = (evs) => {
     total: evs.length, porCat, conJugador, ratioConJugador: +(conJugador / evs.length).toFixed(3),
     idsDuplicados, textosDuplicados, pocasOpciones, opcionesInvalidas, tokensDesconocidos: desconocidos,
     cadenas: { setea: [...flagsSetea], requiere: [...flagsRequiere] },
+    porFase, plantillasPorFase, porPais, personajes,
   };
 };

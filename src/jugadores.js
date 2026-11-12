@@ -61,6 +61,7 @@ function generarJugador(rng, opts){
     nombre, apellido, nombreCompleto: nombre + ' ' + apellido,
     pos, edad, rating, rasgo, cualidad: opts.cualidad || null,
     valor: valorDeMercado(rating, edad), dorsal: null, paisCode: opts.paisCode || null,
+    contrato: (() => { const c = rng(); return c < 0.2 ? 0 : c < 0.5 ? 1 : c < 0.8 ? 2 : 3; })(), goles: 0,
   };
 }
 
@@ -176,6 +177,7 @@ function generarCandidatosMercado(rng, club, n){
     const nivel = club.dif === 'facil' ? 70 : club.dif === 'medio' ? 66 : 62;
     const cualidad = rng() < 0.45 ? CUALIDAD_IDS[Math.floor(rng() * CUALIDAD_IDS.length)] : null;
     const j = generarJugador(rng, { paisCode: club.paisCode, ratingBase: nivel, ratingSpread: 22, cualidad });
+    j.contrato = 2 + Math.floor(rng() * 2);
     out.push(j);
   }
   return out;

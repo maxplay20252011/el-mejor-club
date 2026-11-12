@@ -20,7 +20,19 @@ La tarjeta descargable suma puesto en la tabla, objetivo, puntaje y los dos titu
 ## Dispositivos y países
 El diseño se adapta a celular (desde 320 px, vertical y horizontal), tablet y escritorio: en pantallas grandes el creador de escudo y la formación pasan a dos columnas y la lista de clubes a tres. Hay 215 países y territorios: los 193 de la ONU, Santa Sede, Palestina y 20 selecciones y territorios (Inglaterra, Escocia, Gales, Irlanda del Norte, Taiwán, Kosovo, Hong Kong, Puerto Rico y otros). Las banderas se cargan como imagen desde flagcdn.com y, si no hay conexión, caen al emoji.
 
+## Una temporada completa
+Además de las 13 decisiones, la temporada tiene **22 fechas de liga** con resultados y goleadores (pantalla *Partidos*), una **copa** de cuatro rondas, un **clásico** contra un rival fijo, **renovaciones de contrato** a mitad de camino y un **mercado de invierno** con ofertas por tus jugadores, juveniles de la cantera y cambio de DT. Al terminar podés seguir con la **temporada siguiente** (modo carrera): los jugadores envejecen y evolucionan, los contratos vencen, los rivales cambian y se heredan la caja y parte de la reputación.
+
+## El club
+Pantalla *Club*: **estadio y socios** (cuota popular, normal o premium, ampliación del estadio), **cantera** (3 niveles), **sponsor** (seguro, equilibrado o agresivo, con cláusulas), **director técnico** (ofensivo, defensivo, formador o motivador, con sueldo) y la **camiseta**, que se arma con los colores del escudo. Hay finales especiales (doblete, dinastía, salvación milagrosa, club refundado...).
+
+## Eventos
+Más de 1.200 eventos concretos a partir de ~170 plantillas: estacionales (inicio, medio y cierre de temporada), eventos por país o región (`paises`, `geo`, `cluster`), personajes recurrentes (periodista, hincha, empresario), 13 cadenas de consecuencias y eventos de clásico.
+
+## Idiomas y accesibilidad
+Español, English, Português, Français e Italiano (se elige en el inicio o en ⚙; se detecta el del navegador). Los textos viven en `src/i18n_es.js` y `src/i18n_xx.js`; las traducciones de eventos en `src/ev_xx_*.js` y los nombres de símbolos en `src/sim_xx.js`. `tools/i18n_check.html?lang=en` verifica que no falte ninguna clave ni cambien los marcadores `{x}`. El panel ⚙ ofrece tamaño de letra, alto contraste, reducir movimiento y sonido; la interfaz usa roles ARIA, anuncios para lectores de pantalla, enlace "saltar al contenido" y navegación por teclado.
+
 ## Desarrollo
 - Código en `src/`; `python3 src/build.py` genera `volvete-dirigente.html` (falla si falta un archivo).
-- `node tools/simular.js 300` simula temporadas por dificultad y política, y audita el pool de eventos.
+- `node tools/simular.js 300` simula temporadas completas (con copa, invierno y renovaciones) por dificultad y política, y audita el pool de eventos.
 - CI verifica que el HTML versionado coincida con `src/`.

@@ -5,11 +5,11 @@
 <h1>Tests de balance</h1>
 <p class="mut">Abrir con un servidor estático (por ejemplo <code>python -m http.server</code> en la raíz del repo) en <code>/tools/balance.html?n=200</code>. No toca la partida guardada del juego.</p>
 <div id="out">Corriendo…</div>
-<script src="../src/paises.js"></script><script src="../src/nombres.js"></script><script src="../src/eventos.js"></script>
-<script src="../src/crest.js"></script><script src="../src/clubes.js"></script><script src="../src/jugadores.js"></script>
-<script src="../src/liga.js"></script><script src="../src/juego.js"></script>
+<script>['paises','nombres','eventos','eventos2','i18n','i18n_es','crest','clubes','jugadores','liga','temporada','camiseta','juego'].forEach(f => document.write('<script src="../src/' + f + '.js?v=' + Date.now() + '"><\/script>'));</script>
 <script>
 guardarPartida = function(){}; borrarGuardado = function(){}; guardarHist = function(){};
+fijarIdioma('es'); construirDiccionarioEs();
+const avanzarHooks = () => { let g = 0; while(['renov','copa','invierno'].includes(ui.screen) && g++ < 10) terminarHook(); };
 const N = Number(new URLSearchParams(location.search).get('n')) || 200;
 const LIM = {            // umbrales de salud del balance (política "azar")
   finPrematuroMax: 0.45,  // destituido / quiebra / motín
@@ -41,18 +41,19 @@ for(const dif of ['facil','medio','dificil']){
       const c = clubes[i % clubes.length];
       const seed = 1000 + i * 7919, rnd = mulberry32(seed ^ 0xABCDEF);
       iniciarPartida({ nombre:c.nombre, ciudad:'', paisCode:c.paisCode, dif:c.dif, stats:c.stats, crest:c.crest }, seed);
+      state.dt = ui.dts[0]; ui.screen = 'evento';
       let guard = 0;
       while(ui.screen !== 'diario' && guard++ < 40){
         const ev = eventoActual(); if(!ev) break;
         aparecio.add(ev.id);
         state.ctx = ctxParaEvento(ev);
         elegirOpcion(pol(ev.opciones, rnd));
-        siguienteEvento();
+        siguienteEvento(); avanzarHooks();
       }
       const v = veredicto(), pos = v.puesto;
       r.n++; r.score += v.score; r.pos += pos; r.eventos += state.historial.length;
       if(state.fin) r.fin++;
-      if(!state.fin && v.titulo === 'Leyenda de la dirigencia') r.leyenda++;
+      if(!state.fin && v.score >= VEREDICTOS[0].min) r.leyenda++;
       if(!state.fin && objetivo().cumplido) r.obj++;
       if(!state.fin && pos === 1) r.camp++;
       if(!state.fin && zonaLiga(pos) === 'descenso') r.desc++;

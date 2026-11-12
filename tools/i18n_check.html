@@ -1,0 +1,75 @@
+<!doctype html><meta charset="utf-8"><title>i18n check</title>
+<body style="font:13px system-ui;background:#111;color:#eee;padding:12px"><h3>Chequeo de traducciones: <span id="l"></span></h3><pre id="o">cargando…</pre>
+<script>
+const LANG_Q = new URLSearchParams(location.search).get('lang') || 'en';
+const MODS = ['paises','nombres','eventos','eventos2','i18n','i18n_es','crest','clubes','jugadores','liga','temporada','camiseta','juego'];
+const OPC = ['i18n_' + LANG_Q, 'sim_' + LANG_Q, 'ev_' + LANG_Q + '_1', 'ev_' + LANG_Q + '_2', 'ev_' + LANG_Q + '_3'];
+MODS.concat(OPC).forEach(f => document.write('<script src="../src/' + f + '.js?v=' + Date.now() + '"><\/script>'));
+</script>
+<script>
+const rep = { lang: LANG_Q, errores: [], avisos: [] };
+const ph = s => (String(s).match(/\{\w+\}/g) || []).sort().join(',');
+try{
+  construirDiccionarioEs();
+  const es = I18N.es, tr = I18N[LANG_Q];
+  if(!tr){ rep.errores.push('No existe I18N.' + LANG_Q + ' (falta src/i18n_' + LANG_Q + '.js o tiene errores de sintaxis)'); }
+  else {
+    const faltan = Object.keys(es).filter(k => tr[k] === undefined);
+    const sobran = Object.keys(tr).filter(k => es[k] === undefined);
+    const dist = Object.keys(es).filter(k => tr[k] !== undefined && ph(es[k]) !== ph(tr[k]));
+    const iguales = Object.keys(es).filter(k => tr[k] !== undefined && tr[k] === es[k] && /[a-záéíóúñ]{4,}/i.test(es[k]));
+    rep.dic = { claves_es: Object.keys(es).length, claves_traducidas: Object.keys(tr).length, faltan: faltan.slice(0, 30), n_faltan: faltan.length, sobran: sobran.slice(0, 15), placeholders_distintos: dist.slice(0, 20), n_placeholders: dist.length, iguales_al_espanol: iguales.length, ejemplos_iguales: iguales.slice(0, 15) };
+    if(faltan.length) rep.errores.push(faltan.length + ' claves sin traducir');
+    if(dist.length) rep.errores.push(dist.length + ' claves con placeholders distintos');
+  }
+  const sim = SIMBOLOS_I18N[LANG_Q];
+  if(!sim) rep.avisos.push('Sin SIMBOLOS_I18N.' + LANG_Q);
+  else {
+    let verif = 0, ok = 0; const mal = [];
+    PAISES.forEach(p => {
+      const lista = SIMBOLOS_POR_PAIS[p.code] || []; const t6 = sim[p.code];
+      lista.forEach((s, i) => { if(s.verificado){ verif++; if(t6 && t6[i]) ok++; else if(mal.length < 15) mal.push(p.code + '[' + i + '] ' + s.nombre); } });
+      if(t6 && t6.length !== 6) mal.push(p.code + ' longitud ' + t6.length);
+    });
+    rep.simbolos = { verificados: verif, traducidos: ok, sin_traducir: mal };
+    if(ok < verif) rep.errores.push((verif - ok) + ' símbolos verificados sin traducir');
+  }
+  const trE = EVENTOS_I18N[LANG_Q];
+  if(!trE) rep.avisos.push('Sin EVENTOS_I18N.' + LANG_Q);
+  else {
+    const prob = []; let cubiertas = 0;
+    PLANTILLAS_EVENTOS.forEach(p => {
+      const x = trE[p.id];
+      if(!x){ prob.push(p.id + ': sin traducción'); return; }
+      cubiertas++;
+      if(!x.titulo || !x.contexto) prob.push(p.id + ': falta titulo/contexto');
+      const vars = p.variables || {};
+      Object.keys(vars).forEach(k => { if(!x.variables || !Array.isArray(x.variables[k]) || x.variables[k].length !== vars[k].length) prob.push(p.id + ': variable ' + k + ' distinta longitud'); });
+      if(!x.opciones || x.opciones.length !== p.opciones.length) prob.push(p.id + ': distinta cantidad de opciones');
+      else p.opciones.forEach((o, i) => {
+        const y = x.opciones[i];
+        if(!y.texto) prob.push(p.id + ' op' + i + ': falta texto');
+        if(o.azar){ if(!(y.ok && y.ok.msg && y.mal && y.mal.msg)) prob.push(p.id + ' op' + i + ': faltan ok.msg/mal.msg'); }
+        else if(!y.msg) prob.push(p.id + ' op' + i + ': falta msg');
+        const orig = [o.texto, o.sub, o.msg, o.azar && o.azar.ok.msg, o.azar && o.azar.mal.msg].join(' ');
+        const trad = [y.texto, y.sub, y.msg, y.ok && y.ok.msg, y.mal && y.mal.msg].join(' ');
+        const tk = s => [...new Set(String(s).match(/\{[A-Z_]+\}/g) || [])].sort().join(',');
+        if(tk(orig) !== tk(trad)) prob.push(p.id + ' op' + i + ': tokens {X} distintos (' + tk(orig) + ' vs ' + tk(trad) + ')');
+      });
+      const tk2 = s => [...new Set(String(s).match(/\{[A-Z_]+\}/g) || [])].sort().join(',');
+      const o2 = tk2([p.titulo, p.contexto]), t2 = tk2([x.titulo, x.contexto]);
+      const varNames = Object.keys(vars).map(v => '{' + v + '}');
+      const quitaVars = s => s.split(',').filter(t => !varNames.includes(t)).join(',');
+      if(quitaVars(o2) !== quitaVars(t2)) prob.push(p.id + ': tokens de titulo/contexto distintos');
+    });
+    const a = expandirPlantillas(PLANTILLAS_EVENTOS, 'es'), b = expandirPlantillas(PLANTILLAS_EVENTOS, LANG_Q);
+    const sinTraducir = b.filter((e, i) => e.titulo === a[i].titulo && /[a-záéíóúñ]{4,}/i.test(a[i].titulo)).length;
+    rep.eventos = { plantillas: PLANTILLAS_EVENTOS.length, cubiertas, eventos_es: a.length, eventos_traducidos: b.length, titulos_identicos_al_es: sinTraducir, problemas: prob.slice(0, 40), n_problemas: prob.length };
+    if(prob.length) rep.errores.push(prob.length + ' problemas en eventos');
+  }
+}catch(e){ rep.errores.push('EXCEPCIÓN: ' + e.message); }
+document.getElementById('l').textContent = LANG_Q;
+document.getElementById('o').textContent = JSON.stringify(rep, null, 1);
+window.__i18n = rep;
+</script>
+</body>
