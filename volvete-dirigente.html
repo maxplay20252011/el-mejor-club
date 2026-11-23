@@ -1312,6 +1312,261 @@ const PLANTILLAS_EVENTOS = [
   ] },
 
 
+/* ===================== CONTENIDO NUEVO: DEPORTIVO ===================== */
+{ id:'dep_arbitraje_polemico', cat:'deportivo', jugador:null,
+  titulo:'Un arbitraje que quema',
+  contexto:'Tras {FALLO}, el técnico pide que el club presente un reclamo formal. {REACCION}.',
+  variables:{ FALLO:['un penal que no fue','un gol anulado sin explicación','una expulsión dudosa'], REACCION:['El vestuario está indignado','La prensa lo repite en loop','La hinchada ya armó la cargada'] },
+  opciones:[
+    O('Presentar el reclamo','Bronca institucional',D(2,2,0,-10,3),'El reclamo salió en todos los medios. No cambia el resultado, pero el grupo se sintió respaldado.'),
+    O('Bajar el tono','Cuidás la relación con la liga',D(1,-1,0,0,-2),'Elegiste la cautela. El plantel pensó que no los defendiste.'),
+    A('Pedir una reunión con la comisión de árbitros','Puede mejorar o empeorar',0.45,D(3,2,3,0,4),'La reunión sirvió: el próximo partido tuvo un arbitraje parejo.',D(-3,-3,-2,0,-3),'Se tomaron como una presión indebida y el clima con los árbitros empeoró.'),
+  ] },
+
+{ id:'dep_juvenil_debut', cat:'deportivo', jugador:'joven',
+  titulo:'Debut de un juvenil',
+  contexto:'El técnico quiere darle la chance a {JUGADOR}, {JPOS} de {JEDAD} años, {CONTEXTO_D}. El pibe está ansioso.',
+  variables:{ CONTEXTO_D:['en un partido clave','ante un rival directo','como titular en la copa'] },
+  opciones:[
+    O('Que debute','Apostás a la cantera',D(2,3,2,0,2),'{JUGADOR} debutó y respondió con personalidad. La tribuna lo adoptó enseguida.'),
+    O('Esperar un mejor momento','Sin riesgos',D(0,-1,0,0,-1),'Lo guardaste para otra ocasión. El juvenil lo sintió como una puerta cerrada.'),
+    A('Dejarlo en la lista, a disposición','Mitad de camino',0.5,D(2,2,3,0,2),'Entró en los minutos finales y cambió el partido.',D(-1,0,-2,0,-1),'No jugó y el técnico quedó ligeramente molesto.'),
+  ] },
+
+{ id:'dep_lesion_figura', cat:'deportivo', jugador:'figura',
+  titulo:'La figura llega justo',
+  contexto:'{JUGADOR} ({JPOS}, nivel {JRATING}) se lesionó {GRAVEDAD}. El cuerpo médico dice que puede jugar el domingo, pero con riesgo.',
+  variables:{ GRAVEDAD:['en la semana','en el último entrenamiento','sin que nadie lo notara'] },
+  opciones:[
+    A('Ponerlo igual','Todo o nada',0.5,D(2,3,6,0,2),'{JUGADOR} jugó infiltrado y ganó el partido solo.',D(-5,-3,-5,-50,-4),'{JUGADOR} se lesionó peor: perdió el partido y varias fechas.'),
+    O('Cuidarlo','Pierde el partido, gana la temporada',D(1,0,-3,0,1),'Descansó {JUGADOR}. Se perdieron puntos, pero volverá entero.'),
+    O('Traer un reemplazo de apuro','Sale plata, aparece un recambio',D(0,0,2,-60,0),'Resolviste con un fichaje de emergencia que cumplió.'),
+  ] },
+
+{ id:'dep_tecnico_ultimatum', cat:'deportivo', jugador:null,
+  titulo:'El técnico pone un ultimátum',
+  contexto:'El técnico amenaza con irse si no consigue {PEDIDO_T}. Tiene respaldo en el vestuario y en las tribunas.',
+  variables:{ PEDIDO_T:['dos refuerzos antes de fin de mes','que se le dé más poder de decisión','que se aleje a un dirigente del vestuario'] },
+  opciones:[
+    O('Cederle lo que pide','Lo conservás, cuesta',D(-2,1,3,-90,5),'Le diste el gusto. El técnico se quedó y el plantel respiró.'),
+    O('Negociar un punto medio','Algo para cada uno',D(1,0,1,-30,1),'Llegaron a un acuerdo a medias. Nadie quedó del todo conforme.'),
+    O('Aceptar que se vaya','Marcás autoridad',D(2,-4,-4,0,-6),'Dejaste ir al técnico. Los dirigentes aplaudieron, el vestuario no.'),
+  ] },
+
+{ id:'dep_amistoso', cat:'deportivo', jugador:null,
+  titulo:'Oferta para un amistoso internacional',
+  contexto:'Un club de {PAIS_A} ofrece venir a jugar un amistoso a {CLUB}: {OFERTA_A}.',
+  variables:{ PAIS_A:['Europa','Brasil','Asia','México'], OFERTA_A:['pagan bien pero rompe la pretemporada','es un honor pero no pagan nada','es un gran escaparate para los juveniles'] },
+  opciones:[
+    O('Aceptar','Plata y visibilidad',D(1,3,-1,60,-1),'El amistoso se jugó con buena asistencia. El plantel quedó cansado.'),
+    O('Rechazar','Foco en la liga',D(1,-1,2,0,1),'Rechazaste la oferta. El técnico agradeció el descanso.'),
+    O('Negociar fecha y formato','Una opción intermedia',D(2,1,0,25,0),'Ajustaron fecha y condiciones: quedó bien para todos.'),
+  ] },
+
+/* ===================== CONTENIDO NUEVO: ECONÓMICO ===================== */
+{ id:'eco_sede_alquiler', cat:'economico', jugador:null,
+  titulo:'Alquilar la sede para eventos',
+  contexto:'Una empresa quiere alquilar {ESPACIO} de {CLUB} para {EVENTO_E}. Es plata fresca, pero hay vecinos y socios que opinan.',
+  variables:{ ESPACIO:['el salón principal','las canchas auxiliares','el estacionamiento'], EVENTO_E:['una feria de tecnología','un casamiento multitudinario','unas jornadas corporativas'] },
+  opciones:[
+    O('Aceptar el alquiler','Ingreso extra, algo de ruido',D(-1,0,0,70,-1),'El alquiler fue un éxito comercial, con algunas quejas menores.'),
+    O('Negarte','La sede es del club',D(2,1,0,0,1),'Cuidaste la identidad del club. La caja lo notó.'),
+    A('Aceptar con condiciones','Pedís una parte de la recaudación',0.5,D(2,1,0,110,1),'Lograste un buen trato con porcentaje de recaudación.',D(-2,-1,0,0,0),'La empresa se retiró y quedaste sin el evento ni el ingreso.'),
+  ] },
+
+{ id:'eco_sueldos_atrasados', cat:'economico', jugador:null,
+  titulo:'Sueldos atrasados',
+  contexto:'El club debe {ATRASO} a los empleados. El gremio amenaza con {MEDIDA}.',
+  variables:{ ATRASO:['dos meses de sueldo','los premios del último trimestre','las cargas sociales'], MEDIDA:['un paro','una denuncia pública','una asamblea frente a la sede'] },
+  opciones:[
+    O('Pagar de inmediato','Se desactiva el conflicto',D(2,2,0,-100,3),'Pagaste todo y el gremio levantó el conflicto.'),
+    O('Plan de pagos','Aliviás hoy, comprometés mañana',D(0,-1,0,-30,0),'Acordaron un plan de pagos con intereses.'),
+    O('Aguantar el conflicto','Cuidás la caja',D(-4,-5,-2,0,-5),'Aguantaste. El paro afectó la imagen del club y al plantel.'),
+  ] },
+
+{ id:'eco_clausula_rescision', cat:'economico', jugador:'figura',
+  titulo:'Cláusula de rescisión',
+  contexto:'Un club de {DESTINO_C} activa la cláusula de {JUGADOR}, {JPOS} de {JEDAD} años, por un monto que {MONTO_C}.',
+  variables:{ DESTINO_C:['México','Europa','Medio Oriente','Brasil'], MONTO_C:['es razonable','es muy bueno para la caja','es bajo para su nivel'] },
+  opciones:[
+    O('Dejarlo ir','La caja respira',D(-3,-4,-4,200,-8),'{JUGADOR} se fue. Entró una fortuna, pero perdiste a tu figura.',VENDE),
+    O('Renegociar su contrato','Pagás para retenerlo',D(2,3,2,-110,2),'Mejoraste el contrato de {JUGADOR} y se quedó.'),
+    A('Pedir más plata al comprador','Ambicioso',0.4,D(1,1,-2,330,-6),'El comprador aceptó pagar más. Fue una gran operación.',D(-4,-5,-4,0,-3),'Se cayó la operación y {JUGADOR} quedó resentido con la gestión.',VENDE,{}),
+  ] },
+
+{ id:'eco_inundacion', cat:'economico', jugador:null,
+  titulo:'Daños en el estadio',
+  contexto:'Una tormenta provocó {DANO}. Los arreglos son urgentes antes del próximo partido de local.',
+  variables:{ DANO:['filtraciones en el vestuario','la caída de parte de la tribuna techada','una inundación en el campo de juego'] },
+  opciones:[
+    O('Reparar ya','Caro pero inmediato',D(2,1,0,-120,1),'Arreglaron todo a tiempo. El club quedó en regla.'),
+    O('Reparación parcial','Lo mínimo para jugar',D(0,-1,-1,-50,-1),'Se hizo lo mínimo. Quedan detalles pendientes.'),
+    O('Convocar a los socios a ayudar','Gesto comunitario',D(3,3,0,-20,2),'Los socios se sumaron voluntariamente y salieron fortalecidos.'),
+  ] },
+
+{ id:'eco_tienda_online', cat:'economico', jugador:null,
+  titulo:'Lanzar la tienda online del club',
+  contexto:'Una empresa propone armar la tienda online de {CLUB}: {PROPUESTA_T}.',
+  variables:{ PROPUESTA_T:['con envíos a todo el país','con camisetas personalizadas','con una colección retro'] },
+  opciones:[
+    O('Hacerlo con la empresa','Inversión menor, ingreso nuevo',D(1,2,0,60,0),'La tienda online arrancó bien y sumó ingresos.'),
+    O('Hacerlo con equipo propio','Más control, más costo',D(2,1,0,-30,1),'Armaron la tienda con equipo propio. Lleva más tiempo, pero queda en casa.'),
+    O('Postergar el proyecto','No es el momento',D(-1,-1,0,0,0),'Postergaste la tienda. Otros clubes ya lo hicieron.'),
+  ] },
+
+/* ===================== CONTENIDO NUEVO: INSTITUCIONAL ===================== */
+{ id:'ins_denuncia_anonima', cat:'institucional', jugador:null,
+  titulo:'Denuncia anónima',
+  contexto:'Llegó una denuncia anónima por {TEMA_D}. Nadie sabe si es verdadera, pero circula entre los socios.',
+  variables:{ TEMA_D:['irregularidades en un contrato','gastos injustificados','favoritismo con un proveedor'] },
+  opciones:[
+    O('Investigar a fondo','Transparencia, aunque duela',D(3,2,0,-30,0),'La investigación disipó dudas y mostró seriedad.'),
+    O('Desmentir públicamente','Defendés la gestión',D(1,-2,0,0,0),'Desmentiste todo. Algunos socios siguen con la duda.'),
+    O('Ignorarla','Que se apague sola',D(-3,-3,0,0,-1),'Ignoraste la denuncia y creció como bola de nieve.'),
+  ] },
+
+{ id:'ins_reforma_estatuto', cat:'institucional', jugador:null,
+  titulo:'Reforma del estatuto',
+  contexto:'Un grupo de socios propone reformar el estatuto para {REFORMA}. La oposición se opone con dureza.',
+  variables:{ REFORMA:['limitar las reelecciones','permitir el voto digital','crear un comité de ética'] },
+  opciones:[
+    O('Apoyar la reforma','Modernizás el club',D(4,3,0,-10,1),'La reforma pasó y el club ganó legitimidad.'),
+    O('Bloquearla','Preservás el statu quo',D(-4,-3,0,0,0),'La bloqueaste y la oposición se radicalizó.'),
+    A('Proponer una versión moderada','Camino del medio',0.55,D(3,2,0,0,0),'La versión moderada logró consenso.',D(-2,-2,0,0,0),'La propuesta no convenció a nadie.'),
+  ] },
+
+{ id:'ins_viaje_dirigentes', cat:'institucional', jugador:null,
+  titulo:'Viaje de dirigentes',
+  contexto:'Se filtró que un grupo de dirigentes viajó a {DESTINO_V} con fondos del club. Los socios piden explicaciones.',
+  variables:{ DESTINO_V:['Europa','Estados Unidos','Qatar'] },
+  opciones:[
+    O('Devolver el dinero y pedir disculpas','Gesto fuerte',D(3,2,0,-40,0),'Devolviste el dinero. El gesto calmó los ánimos.'),
+    O('Justificar el viaje','Era para buscar sponsors',D(-1,-2,0,0,0),'La justificación no convenció, pero tampoco se profundizó.'),
+    O('Apuntar a la oposición','Contraataque',D(-3,-1,0,0,-1),'Acusaste a la oposición de armar el escándalo. Se profundizó la grieta.'),
+  ] },
+
+{ id:'ins_sede_inauguracion', cat:'institucional', jugador:null,
+  titulo:'Inauguración de una obra',
+  contexto:'Se terminó {OBRA_I} y el intendente quiere cortar la cinta. {OBSERVACION}.',
+  variables:{ OBRA_I:['el nuevo buffet','una tribuna renovada','el gimnasio de las divisiones inferiores'], OBSERVACION:['La obra salió más cara de lo previsto','Hay vecinos que no quedaron contentos','La oposición dice que se inauguró a medias'] },
+  opciones:[
+    O('Hacer un acto grande','Visibilidad',D(2,3,0,-40,1),'El acto fue un éxito mediático.'),
+    O('Inaugurar sin ceremonia','Austero',D(1,0,0,0,0),'Inauguraste en silencio. Se notó la sobriedad.'),
+    O('Invitar a los socios veteranos','Reconocimiento',D(3,2,0,-15,2),'Los socios veteranos cortaron la cinta. Hubo lágrimas.'),
+  ] },
+
+{ id:'ins_tribunal_disciplina', cat:'institucional', jugador:'conflictivo',
+  titulo:'Citación al tribunal de disciplina',
+  contexto:'{JUGADOR} fue citado por {INFRACCION}. El tribunal puede aplicar una sanción pesada.',
+  variables:{ INFRACCION:['una agresión verbal al árbitro','una declaración polémica','un gesto obsceno a la tribuna rival'] },
+  opciones:[
+    O('Defenderlo con abogados','Cuesta, lo cuidás',D(1,-1,2,-30,3),'Lograron reducir la sanción. {JUGADOR} se sintió respaldado.'),
+    O('Dejarlo solo','Sanción completa',D(0,0,-3,0,-3),'La sanción cayó completa. El plantel tomó nota.'),
+    O('Multarlo internamente','Autoridad del club',D(2,1,0,15,-2),'Le aplicaste una multa interna. Ordenó al grupo.'),
+  ] },
+
+/* ===================== CONTENIDO NUEVO: MEDIÁTICO ===================== */
+{ id:'med_entrevista_exclusiva', cat:'mediatico', jugador:null,
+  titulo:'Entrevista exclusiva',
+  contexto:'{MEDIO} te ofrece una entrevista exclusiva de {DURACION}. Es tu oportunidad de contar tu versión.',
+  variables:{ MEDIO:['El canal deportivo más visto','Un programa de radio histórico','Un portal muy leído'], DURACION:['media hora','una hora en vivo','una nota larga'] },
+  opciones:[
+    O('Aceptar','Exposición total',D(1,4,0,0,0),'Fuiste claro y firme. La entrevista tuvo repercusión positiva.'),
+    A('Aceptar y ser frontal','Podés brillar o hundirte',0.5,D(3,6,0,0,1),'Fuiste frontal y convincente. Quedó como la mejor entrevista del año.',D(-4,-6,0,0,-2),'Se te escaparon declaraciones que se viralizaron.'),
+    O('Rechazar','Cuidás los tiempos',D(0,-2,0,0,0),'Rechazaste la entrevista. El medio lo tomó con frialdad.'),
+  ] },
+
+{ id:'med_filtracion', cat:'mediatico', jugador:null,
+  titulo:'Se filtró un chat interno',
+  contexto:'Se filtró un chat de dirigentes donde se habla de {FILTRACION}. Las redes arden.',
+  variables:{ FILTRACION:['el técnico y su continuidad','un posible fichaje','el presupuesto de la temporada'] },
+  opciones:[
+    O('Pedir disculpas','Humildad',D(1,1,0,0,-1),'Pediste disculpas. El tema se enfrió rápido.'),
+    O('Investigar al filtrador','Mano dura',D(-1,-2,0,-10,0),'Abriste una investigación. La prensa lo vio como una cacería.'),
+    O('Minimizar el asunto','Era una charla privada',D(-2,-3,0,0,0),'Minimizaste. Los medios siguieron con el tema días.'),
+  ] },
+
+{ id:'med_premio_dirigente', cat:'mediatico', jugador:null,
+  titulo:'Premio al mejor club del año',
+  contexto:'{ORGANIZADOR} quiere premiar a {CLUB} como {CATEGORIA}. Hay que ir a la gala.',
+  variables:{ ORGANIZADOR:['Una revista deportiva','Un canal de cable','Una federación de periodistas'], CATEGORIA:['el club más innovador','la mejor gestión','la revelación del año'] },
+  opciones:[
+    O('Ir con el plantel','Lucirse junto a los jugadores',D(2,4,0,-15,3),'La gala fue una fiesta. El club se llevó el premio.'),
+    O('Ir solo','Más sobrio',D(1,2,0,0,0),'Fuiste a recibirlo vos solo.'),
+    O('No ir','Foco en lo deportivo',D(-1,-2,0,0,0),'No fuiste. Alguien lo interpretó como soberbia.'),
+  ] },
+
+{ id:'med_documental_club', cat:'mediatico', jugador:null,
+  titulo:'Documental sobre el club',
+  contexto:'Una plataforma quiere filmar un documental sobre {CLUB}: {CONDICION_D}.',
+  variables:{ CONDICION_D:['quieren acceso total al vestuario','piden entrevistar a los dirigentes','quieren seguir a los juveniles todo el año'] },
+  opciones:[
+    O('Dar acceso total','Riesgo y premio',D(1,5,0,50,-2),'El documental fue un éxito, aunque mostró intimidades.'),
+    O('Acceso limitado','Cuidado',D(1,2,0,25,0),'Dejaste filmar lo que quisiste. Quedó correcto.'),
+    O('Rechazar','Privacidad primero',D(1,-2,0,0,2),'Cuidaste la intimidad del plantel.'),
+  ] },
+
+{ id:'med_polemica_redes_jugador', cat:'mediatico', jugador:'figura',
+  titulo:'Polémica en redes',
+  contexto:'{JUGADOR} publicó {POSTEO} y se armó un escándalo.',
+  variables:{ POSTEO:['una historia a las 3 de la mañana','un comentario sobre la dirigencia','una foto en una fiesta'] },
+  opciones:[
+    O('Sancionarlo','Marcás autoridad',D(2,2,0,10,-3),'Sancionaste a {JUGADOR}. Se ordenó el grupo.'),
+    O('Hablar en privado','Discreción',D(1,0,0,0,1),'Hablaste en privado. El tema se enfrió.'),
+    O('Defenderlo en público','Respaldo total',D(-1,-2,0,0,4),'Lo defendiste. El vestuario lo agradeció, la prensa no.'),
+  ] },
+
+/* ===================== CONTENIDO NUEVO: HINCHADA ===================== */
+{ id:'hin_caravana', cat:'hinchada', jugador:null,
+  titulo:'Caravana al aeropuerto',
+  contexto:'La hinchada organiza {EVENTO_H} y pide que los jugadores se sumen.',
+  variables:{ EVENTO_H:['una caravana de despedida','un banderazo antes del clásico','una serenata en la puerta del club'] },
+  opciones:[
+    O('Que los jugadores participen','Cercanía',D(3,3,2,0,3),'El plantel salió a saludar. La tribuna quedó emocionada.'),
+    O('Enviar un mensaje de agradecimiento','Distancia prudente',D(1,1,0,0,0),'Mandaste un mensaje. Se agradeció.'),
+    O('Ignorarlo','Foco en el trabajo',D(-3,-2,0,0,-1),'No te hiciste presente. Algunos lo tomaron mal.'),
+  ] },
+
+{ id:'hin_peña_ayuda', cat:'hinchada', jugador:null,
+  titulo:'Una peña pide ayuda',
+  contexto:'La peña de {BARRIO} pide ayuda al club para {AYUDA}. Es un barrio con mucha pasión.',
+  variables:{ BARRIO:['la zona sur','un pueblo del interior','el barrio de la fábrica'], AYUDA:['arreglar su sede','viajar a un partido','armar un merendero'] },
+  opciones:[
+    O('Ayudarlos','Gesto solidario',D(3,2,0,-25,2),'La peña recibió la ayuda con enorme gratitud.'),
+    O('Una ayuda simbólica','Algo es algo',D(1,1,0,-5,0),'Les diste una ayuda simbólica.'),
+    O('Decir que no hay presupuesto','Austeridad',D(-2,-1,0,0,0),'Les dijiste que no. Se mostraron resignados.'),
+  ] },
+
+{ id:'hin_clasico', cat:'hinchada', jugador:null,
+  titulo:'Semana de clásico',
+  contexto:'Se viene el clásico. {SITUACION_C}. La ciudad entera habla del partido.',
+  variables:{ SITUACION_C:['La tensión es máxima','La hinchada pide un partido a todo o nada','El rival llega mejor'] },
+  opciones:[
+    O('Motivar al plantel','Hablarles de la camiseta',D(2,2,4,0,4),'El discurso encendió al plantel.'),
+    A('Desafiar al rival en los medios','Pasión o riesgo',0.5,D(3,5,4,0,2),'Tus declaraciones encendieron el clásico. El equipo respondió.',D(-3,-4,-4,0,-2),'Tus declaraciones calentaron al rival y el partido salió mal.'),
+    O('Bajar la tensión','Prudencia',D(1,0,0,0,1),'Pediste calma. El clásico fue parejo.'),
+  ] },
+
+{ id:'hin_asamblea_hinchas', cat:'hinchada', jugador:null,
+  titulo:'Los hinchas piden una reunión',
+  contexto:'Un grupo de hinchas reclama {RECLAMO_H}. Si no los recibís, amenazan con una protesta.',
+  variables:{ RECLAMO_H:['mejores entradas para el hincha visitante','mayor presencia de socios en las decisiones','que se jueguen más partidos en el estadio propio'] },
+  opciones:[
+    O('Recibirlos','Diálogo abierto',D(3,2,0,0,1),'La reunión fue constructiva. La protesta se levantó.'),
+    O('Mandar a un delegado','Poca presencia',D(0,-1,0,0,0),'Mandaste a un delegado. Quedaron con gusto a poco.'),
+    O('Ignorar el reclamo','Cuidás la autoridad',D(-4,-3,0,0,-1),'No los recibiste. La protesta fue ruidosa.'),
+  ] },
+
+{ id:'hin_homenaje_idolo', cat:'hinchada', jugador:'exJugador',
+  titulo:'Fallece un histórico del club',
+  contexto:'Se confirmó la muerte de {JUGADOR}, ex {JPOS} del club que dejó marca en la hinchada. Los socios piden un homenaje.',
+  variables:{ },
+  opciones:[
+    O('Homenaje en el estadio','Minuto de silencio y banderas',D(4,3,0,-15,2),'El homenaje fue emotivo y unió a toda la ciudad.'),
+    O('Un mensaje institucional','Simple y sentido',D(2,1,0,0,0),'Se publicó un mensaje institucional.'),
+    O('Dejar que lo hagan los socios','Sin protagonismo',D(0,-1,0,0,0),'Los socios organizaron algo propio. Algunos esperaban más del club.'),
+  ] },
+
 ];
 
 /* ===================== Expansión ===================== */
