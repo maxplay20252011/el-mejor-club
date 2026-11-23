@@ -108,6 +108,8 @@ h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
   #app[data-screen=formacion] .screen>.pitch{grid-column:1;grid-row:1/span 8;max-width:none;width:min(100%,calc((100vh - 60px)*.75));width:min(100%,calc((100dvh - 60px)*.75));}
 }
 @media (min-width:1500px){ html{font-size:18px;} #app[data-screen=mercado] .list,#app[data-screen=plantel] .list{grid-template-columns:repeat(3,1fr);} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.opt:focus-visible,.btn:focus-visible{outline:2px solid var(--gold,#d8b45a);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -1662,6 +1664,83 @@ const PLANTILLAS_EVENTOS = [
     O('Ir un rato','Mitad de camino',D(2,1,0,0,0),'Fuiste un rato y saludaste a todos.'),
     O('Faltar','Prioridades',D(-4,-3,0,0,-1),'Faltaste. Se sintió como una traición.'),
   ] },
+
+/* ===================== MAS CONTENIDO ===================== */
+{ id:'m_dep_pretemp_viaje', cat:'deportivo', jugador:null,
+  titulo:'Viaje de pretemporada',
+  contexto:'El técnico propone {DEST_P} para la pretemporada. {COSTO_P}.',
+  variables:{ DEST_P:['una gira por el interior','un campus en la montaña','un viaje al exterior'], COSTO_P:['Sale caro pero une al grupo','El presupuesto no da para mucho','Los jugadores ya están entusiasmados'] },
+  opciones:[ O('Aprobar el viaje','Inversión en el grupo',D(1,1,3,-70,4),'El viaje ordenó al grupo y mejoró la preparación.'), O('Hacerlo en casa','Más barato, menos entusiasmo',D(1,0,0,0,-1),'La pretemporada fue en el club. Cumplió, sin brillo.'), O('Recortarlo a la mitad','Equilibrio',D(0,0,1,-30,1),'Hicieron una versión corta del plan.') ] },
+{ id:'m_dep_nutricion', cat:'deportivo', jugador:null,
+  titulo:'Equipo de nutrición y salud',
+  contexto:'El cuerpo médico pide {RECURSO} para cuidar el rendimiento y bajar las lesiones.',
+  variables:{ RECURSO:['un nutricionista de planta','equipos de recuperación','un psicólogo deportivo'] },
+  opciones:[ O('Contratarlo','Cuidado del plantel',D(2,0,3,-50,3),'La inversión se notó en el rendimiento.'), O('Pedir un presupuesto menor','Algo es algo',D(1,0,1,-20,1),'Cerraste una versión reducida.'), O('Postergarlo','Ahorro hoy',D(-1,0,-2,0,-2),'Lo postergaste. El cuerpo médico lo recordó cada vez que hubo lesiones.') ] },
+{ id:'m_dep_recambio', cat:'deportivo', jugador:'joven',
+  titulo:'Oferta por un juvenil',
+  contexto:'Un club mayor ofrece {OFERTA_J} por {JUGADOR}, {JPOS} de {JEDAD} años. El técnico lo tiene en sus planes.',
+  variables:{ OFERTA_J:['una suma modesta ahora','un porcentaje de la venta futura','un préstamo con opción'] },
+  opciones:[ O('Venderlo','Plata y menos riesgo',D(-1,-2,-2,90,-2),'{JUGADOR} se fue. Entró plata, pero el técnico perdió una pieza.',VENDE), O('Retenerlo','Apostás al futuro',D(2,1,1,0,2),'Le dijiste que no a la oferta. {JUGADOR} se quedó motivado.'), A('Pedir más','Puede subir o caerse',0.5,D(2,1,-2,150,-2),'Aceptaron pagar más. Gran negocio.',D(-2,-2,0,0,-1),'Se cayó la operación y quedó un mal clima.',VENDE,{}) ] },
+{ id:'m_eco_seguro', cat:'economico', jugador:null,
+  titulo:'Renovar los seguros del club',
+  contexto:'La aseguradora propone {POLIZA}. Es un gasto fijo pero evita sustos mayores.',
+  variables:{ POLIZA:['una póliza integral','una póliza solo para el estadio','una póliza para los jugadores'] },
+  opciones:[ O('Contratar la integral','Cubrís todo',D(1,0,0,-60,1),'Quedaste cubierto ante imprevistos.'), O('La mínima','Cubrís lo básico',D(0,0,0,-20,0),'Contrataste la póliza básica.'), O('No contratar','Apostás a la suerte',D(-1,0,-1,0,0),'No contrataste seguro. Rezás.') ] },
+{ id:'m_eco_comedor', cat:'economico', jugador:null,
+  titulo:'El comedor del club',
+  contexto:'El comedor del club {PROBLEMA_C}. Los empleados reclaman una solución.',
+  variables:{ PROBLEMA_C:['está con pérdidas','cerró por una inspección','necesita una renovación urgente'] },
+  opciones:[ O('Invertir en renovarlo','Costoso, necesario',D(2,1,0,-60,2),'Renovaste el comedor. Los socios lo usan más.'), O('Tercerizarlo','Ahorro y menos control',D(0,0,0,30,0),'Lo tercerizaste. Salió más barato.'), O('Cerrarlo','Simplificás',D(-2,-1,0,40,-1),'Cerraste el comedor. Algunos socios lo lamentaron.') ] },
+{ id:'m_eco_derechos_imagen', cat:'economico', jugador:'figura',
+  titulo:'Derechos de imagen',
+  contexto:'{JUGADOR} pide renegociar sus derechos de imagen: quiere {PORCENTAJE}.',
+  variables:{ PORCENTAJE:['un 30 por ciento más','un tercio de lo que genera su camiseta','una cláusula de revalorización'] },
+  opciones:[ O('Aceptar','Contento, caro',D(1,1,1,-60,2),'{JUGADOR} firmó satisfecho.'), O('Contraoferta','Negociación dura',D(0,0,0,-20,0),'Cerraron un punto medio.'), O('Rechazar','Mano firme',D(1,-1,-2,0,-4),'{JUGADOR} se fue molesto.') ] },
+{ id:'m_ins_voluntarios', cat:'institucional', jugador:null,
+  titulo:'Los voluntarios del club',
+  contexto:'Un grupo de voluntarios pide {PEDIDO_V}. Sin ellos, muchas actividades no se sostienen.',
+  variables:{ PEDIDO_V:['un reconocimiento oficial','un espacio propio en la sede','que se los capacite'] },
+  opciones:[ O('Concederlo','Valorás su trabajo',D(3,2,0,-15,2),'Los voluntarios se sintieron valorados.'), O('Una cena de agradecimiento','Gesto simple',D(2,1,0,-5,1),'Hiciste una cena de agradecimiento.'), O('No responder','Sin recursos',D(-2,-1,0,0,0),'Nadie contestó. Algunos se fueron.') ] },
+{ id:'m_ins_colegio', cat:'institucional', jugador:null,
+  titulo:'Convenio con una escuela',
+  contexto:'Una escuela propone {CONVENIO}. Es una buena obra social y una vidriera para las inferiores.',
+  variables:{ CONVENIO:['un convenio para entrenar a sus alumnos','visitas guiadas al estadio','becas deportivas'] },
+  opciones:[ O('Firmarlo','Impacto social',D(3,3,0,-20,1),'El convenio se firmó. La comunidad lo valoró.'), O('Una prueba piloto','Probás primero',D(2,1,0,-8,0),'Hicieron una prueba piloto.'), O('Declinar','Sin capacidad',D(-1,0,0,0,0),'Declinaste. La escuela buscó otro club.') ] },
+{ id:'m_ins_mujeres', cat:'institucional', jugador:null,
+  titulo:'El fútbol femenino pide apoyo',
+  contexto:'El equipo femenino de {CLUB} pide {APOYO_F}. Viene creciendo en todos los frentes.',
+  variables:{ APOYO_F:['más horarios de cancha','un cuerpo técnico completo','viáticos para viajar'] },
+  opciones:[ O('Dar todo el apoyo','Inversión a futuro',D(3,3,2,-50,3),'El equipo femenino respondió con resultados y público.'), O('Un apoyo parcial','Algo es algo',D(1,1,1,-20,1),'Les diste parte de lo que pedían.'), O('Postergar el pedido','Sin recursos',D(-3,-3,0,0,-2),'Lo postergaste. La reacción pública fue fuerte.') ] },
+{ id:'m_med_podcast', cat:'mediatico', jugador:null,
+  titulo:'Podcast del club',
+  contexto:'Una productora ofrece hacer {PODCAST} sobre {CLUB}: acceso a los dirigentes incluido.',
+  variables:{ PODCAST:['un podcast semanal','una serie de audio histórica','un ciclo de entrevistas'] },
+  opciones:[ O('Aceptar','Más presencia',D(1,3,0,10,0),'El podcast sumó audiencia y simpatía.'), O('Condicionarlo','Con control editorial',D(0,1,0,5,0),'Pusiste condiciones y se acordó un formato.'), O('Rechazar','Cuidás la intimidad',D(0,-1,0,0,1),'Rechazaste. Se perdió una vidriera.') ] },
+{ id:'m_med_rival', cat:'mediatico', jugador:null,
+  titulo:'Declaraciones del presidente rival',
+  contexto:'El presidente de otro club dijo que {DECLARACION}. La prensa espera tu respuesta.',
+  variables:{ DECLARACION:['tu club es una empresa mal administrada','su equipo está muy por encima','vas a perder la categoría'] },
+  opciones:[ O('Responder con firmeza','Defender al club',D(2,2,1,0,2),'Tu respuesta fue contundente y se compartió mucho.'), O('Ignorar','Mejor no discutir',D(0,-1,0,0,0),'No respondiste. El rival se sintió ganador.'), A('Contraatacar con ironía','Brillás o fallás',0.5,D(3,5,1,0,2),'Tu ironía fue lo más comentado de la semana.',D(-3,-5,-1,0,-1),'La ironía te salió mal y fue un papelón.') ] },
+{ id:'m_med_fotografia', cat:'mediatico', jugador:null,
+  titulo:'Foto oficial del plantel',
+  contexto:'Se acerca la foto oficial y hay {PROBLEMA_F}. El fotógrafo no puede reprogramarse.',
+  variables:{ PROBLEMA_F:['un jugador lesionado que quiere salir','un conflicto por el lugar en la foto','la nueva camiseta aún sin llegar'] },
+  opciones:[ O('Hacer la foto igual','Cumplís la fecha',D(0,1,0,0,-1),'Se hizo la foto a pesar del problema.'), O('Reprogramar','Más costo',D(0,0,0,-15,1),'Reprogramaste. Salió mejor.'), O('Cancelar la sesión','Sin foto',D(-1,-2,0,0,0),'Cancelaste. La prensa se quedó sin imagen.') ] },
+{ id:'m_hin_entradas', cat:'hinchada', jugador:null,
+  titulo:'Entradas agotadas',
+  contexto:'Para {PARTIDO_E} se agotaron las entradas en minutos y hay {PROBLEMA_E}.',
+  variables:{ PARTIDO_E:['el próximo clásico','el partido de copa','la despedida de un ídolo'], PROBLEMA_E:['reventa a precios altísimos','quejas de los socios sin entrada','colas gigantescas'] },
+  opciones:[ O('Habilitar una tribuna extra','Más gente, más riesgo',D(2,2,1,35,0),'Se habilitó más lugar. La fiesta fue completa.'), O('Controlar la reventa','Orden y transparencia',D(3,2,0,0,0),'Controlaste la reventa y calmaste a los socios.'), O('Dejar todo como está','Sin cambios',D(-3,-2,0,0,0),'No hiciste nada. Hubo escándalos en la puerta.') ] },
+{ id:'m_hin_ninos', cat:'hinchada', jugador:null,
+  titulo:'Entrada gratis para chicos',
+  contexto:'Una agrupación propone {PROPUESTA_N} para llenar la cancha de niños y familias.',
+  variables:{ PROPUESTA_N:['entradas gratis para menores','un sector familiar','una jornada de escuelitas en cancha'] },
+  opciones:[ O('Hacerlo','Inversión a futuro',D(3,3,1,-25,1),'La cancha se llenó de familias. Nace una generación de hinchas.'), O('Solo un partido de prueba','Prudencia',D(2,1,0,-8,0),'Hicieron una prueba y salió bien.'), O('Descartarlo','Sin recursos',D(-1,-1,0,0,0),'Lo descartaste. Quedó en la nada.') ] },
+{ id:'m_hin_cantico', cat:'hinchada', jugador:null,
+  titulo:'Un cántico polémico',
+  contexto:'La tribuna cantó {CANTICO} durante el partido. La liga amenaza con sancionar al club.',
+  variables:{ CANTICO:['un cántico discriminatorio','insultos al árbitro','un cántico contra la dirigencia'] },
+  opciones:[ O('Condenarlo públicamente','Postura clara',D(3,2,0,0,-1),'Condenaste el cántico. Algunos hinchas se molestaron, la liga lo valoró.'), O('Hablar con los líderes de la barra','Diálogo',D(1,0,0,-10,0),'Hablaste con la barra. Prometieron cuidarse.'), O('Minimizarlo','Era una pasión',D(-3,-3,0,-40,0),'Lo minimizaste. La liga sancionó al club.') ] },
 
 ];
 
@@ -3344,6 +3423,7 @@ const PANTALLAS = {
 };
 function render(){
   app.dataset.screen = ui.screen;
+  app.setAttribute('aria-live', 'polite');
   app.innerHTML = PANTALLAS[ui.screen]();
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);
@@ -3508,6 +3588,17 @@ function leerSeed(){
   ui.seed = null;
   return n > 0 ? n : Math.floor(Math.random() * 1e9);
 }
+/* atajos de teclado: 1-4 eligen opción; Enter avanza */
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '')) return;
+  if(ui.screen === 'evento' && /^[1-4]$/.test(e.key)){
+    const b = app.querySelectorAll('[data-act="opcion"]')[Number(e.key) - 1];
+    if(b){ e.preventDefault(); b.click(); }
+  } else if(e.key === 'Enter' && (ui.screen === 'resultado' || ui.screen === 'diario')){
+    const b = app.querySelector('[data-act="siguiente"],[data-act="irFinal"]');
+    if(b){ e.preventDefault(); b.click(); }
+  }
+});
 app.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if(!el || el.disabled) return;

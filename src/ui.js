@@ -305,6 +305,7 @@ const PANTALLAS = {
 };
 function render(){
   app.dataset.screen = ui.screen;
+  app.setAttribute('aria-live', 'polite');
   app.innerHTML = PANTALLAS[ui.screen]();
   window.scrollTo(0, 0);
   if(ui.screen === 'resultado' && state && state.resultado) flashHud(state.resultado.antes);
@@ -469,6 +470,17 @@ function leerSeed(){
   ui.seed = null;
   return n > 0 ? n : Math.floor(Math.random() * 1e9);
 }
+/* atajos de teclado: 1-4 eligen opción; Enter avanza */
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '')) return;
+  if(ui.screen === 'evento' && /^[1-4]$/.test(e.key)){
+    const b = app.querySelectorAll('[data-act="opcion"]')[Number(e.key) - 1];
+    if(b){ e.preventDefault(); b.click(); }
+  } else if(e.key === 'Enter' && (ui.screen === 'resultado' || ui.screen === 'diario')){
+    const b = app.querySelector('[data-act="siguiente"],[data-act="irFinal"]');
+    if(b){ e.preventDefault(); b.click(); }
+  }
+});
 app.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if(!el || el.disabled) return;
