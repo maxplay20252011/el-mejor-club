@@ -1076,6 +1076,102 @@ const PLANTILLAS_EVENTOS = [
     O('Dejar que lo hagan los socios','Sin protagonismo',D(0,-1,0,0,0),'Los socios organizaron algo propio. Algunos esperaban más del club.'),
   ] },
 
+/* ===================== CADENAS: una decision hoy, una consecuencia despues ===================== */
+{ id:'cad_promesa_arco', cat:'deportivo', jugador:null,
+  titulo:'Prometés un refuerzo al técnico',
+  contexto:'El técnico te pide {PEDIDO_R} y quiere una palabra: ¿hay refuerzo o no?',
+  variables:{ PEDIDO_R:['un delantero para la segunda rueda','un central de experiencia','un mediocampista creativo'] },
+  opciones:[
+    O('Prometerlo','Palabra empeñada',D(1,1,2,0,3),'Le diste tu palabra al técnico. Ahora hay que cumplir.','promesa_refuerzo'),
+    O('No prometer nada','Cuidás la caja',D(0,0,-2,0,-2),'No prometiste nada. El técnico se resignó, sin entusiasmo.'),
+    O('Decirle que lo evaluás','Evasiva diplomática',D(0,0,0,0,0),'Lo dejaste con un "veremos".'),
+  ] },
+{ id:'cad_promesa_cobra', cat:'deportivo', jugador:null, requiere:'promesa_refuerzo',
+  titulo:'El técnico te recuerda la promesa',
+  contexto:'{MOMENTO_P}, el técnico te frena en el pasillo: "Me dijiste que había refuerzo".',
+  variables:{ MOMENTO_P:['Después de una derrota','Antes de un partido clave','En plena conferencia'] },
+  opciones:[
+    O('Cumplir y fichar','Pagás lo prometido',D(3,2,4,-110,4),'Cumpliste tu palabra. El plantel lo valoró mucho.'),
+    O('Pedir paciencia','Otra vez',D(-3,-3,-2,0,-6),'Pediste más tiempo. El técnico dejó de creerte.'),
+    O('Reconocer que no se puede','Franqueza',D(0,-1,-1,0,-2),'Admitiste que no hay plata. Perdió fuerza tu palabra, pero se valoró la honestidad.'),
+  ] },
+
+{ id:'cad_obra_promesa', cat:'institucional', jugador:null,
+  titulo:'Prometés una obra a los socios',
+  contexto:'En plena asamblea, alguien pide {OBRA_P}. La sala espera tu respuesta.',
+  variables:{ OBRA_P:['iluminar la cancha de entrenamiento','renovar los vestuarios','construir una pileta'] },
+  opciones:[
+    O('Comprometerte públicamente','Aplausos hoy, deuda mañana',D(4,3,0,0,1),'La sala aplaudió de pie. Quedó anotado en el acta.','obra_prometida'),
+    O('Decir que se estudia','Prudencia',D(0,0,0,0,0),'Dijiste que se estudia. Nadie se quedó contento.'),
+    O('Negarte con números','Realismo',D(1,-2,0,0,0),'Mostraste las cuentas. No hubo aplausos, pero hubo respeto.'),
+  ] },
+{ id:'cad_obra_cobra', cat:'institucional', jugador:null, requiere:'obra_prometida',
+  titulo:'Llegó la hora de la obra',
+  contexto:'Los socios preguntan por {OBRA_Q}. Hay un presupuesto de {COSTO_O}.',
+  variables:{ OBRA_Q:['la obra que prometiste','el compromiso del acta','la promesa de la asamblea'], COSTO_O:['mucho más caro de lo pensado','justo lo estimado','menos de lo esperado'] },
+  opciones:[
+    O('Hacerla completa','Cumplís',D(4,3,0,-130,2),'La obra se inauguró. Cumpliste tu palabra.'),
+    O('Hacerla por etapas','A medias',D(1,0,0,-50,0),'Se hizo la primera etapa. La segunda queda en suspenso.'),
+    O('Postergarla otra vez','Perdés credibilidad',D(-5,-4,0,0,-1),'La postergaste. Los socios empezaron a hablar de "promesas vacías".'),
+  ] },
+
+{ id:'cad_tv_negociacion', cat:'economico', jugador:null,
+  titulo:'Negociás un acuerdo televisivo',
+  contexto:'Un canal ofrece {OFERTA_TV} por los derechos de {CLUB}. Hay cláusulas que ni vos terminás de entender.',
+  variables:{ OFERTA_TV:['un contrato a tres años','una exclusividad regional','un paquete con partidos a la carta'] },
+  opciones:[
+    O('Firmar el acuerdo','Ingreso seguro, letra chica',D(1,2,0,100,0),'Firmaste el acuerdo. La plata entró pronto.','acuerdo_tv'),
+    O('Negociar mejor','Más lento',D(1,0,0,20,0),'Negociaste algunos puntos y cerraste algo mejor.'),
+    O('Rechazarlo','Independencia',D(0,-1,0,0,0),'Rechazaste el acuerdo. Otros clubes lo aceptaron.'),
+  ] },
+{ id:'cad_tv_letra_chica', cat:'economico', jugador:null, requiere:'acuerdo_tv',
+  titulo:'La letra chica del canal',
+  contexto:'El canal invoca {CLAUSULA_TV}: te exige cambios de horario y {EXIGENCIA}.',
+  variables:{ CLAUSULA_TV:['una cláusula de exclusividad','el punto 14 del contrato','la letra chica del anexo'], EXIGENCIA:['ruedas de prensa obligatorias','partidos en horarios incómodos','menciones de sponsors'] },
+  opciones:[
+    O('Aceptar los cambios','Cumplís el contrato',D(-1,0,-2,30,-3),'Aceptaste las condiciones. El plantel sufrió los horarios.'),
+    O('Renegociar con abogados','Cuesta, defendés al club',D(2,1,0,-40,1),'Los abogados lograron una salida razonable.'),
+    A('Plantarte','Puede salir bien o mal',0.4,D(3,3,0,60,1),'El canal cedió. Quedaste como un negociador duro.',D(-4,-3,0,-90,0),'El canal te demandó y pagaste una multa.'),
+  ] },
+
+{ id:'cad_denuncia_abierta', cat:'institucional', jugador:null,
+  titulo:'Abrís una investigación interna',
+  contexto:'Tras rumores sobre {ASUNTO_I}, un grupo de socios pide una investigación.',
+  variables:{ ASUNTO_I:['las compras de la sede','los viáticos de la comisión','los contratos de la tienda'] },
+  opciones:[
+    O('Abrir la investigación','Transparencia',D(3,2,0,-20,0),'Se abrió la investigación. La sede quedó en vilo.','investigacion_abierta'),
+    O('Pedir una auditoría externa','Más serio, más caro',D(3,3,0,-60,0),'Contrataste auditores externos. La prensa lo valoró.','investigacion_abierta'),
+    O('Cerrar el tema','Evitás el escándalo',D(-2,-3,0,0,0),'Cerraste el tema. Los rumores siguen.'),
+  ] },
+{ id:'cad_denuncia_resultado', cat:'institucional', jugador:null, requiere:'investigacion_abierta',
+  titulo:'Resultados de la investigación',
+  contexto:'La investigación concluye: {HALLAZGO}. Hay que decidir qué hacer.',
+  variables:{ HALLAZGO:['hubo irregularidades menores','no hubo nada grave','se detectaron errores administrativos'] },
+  opciones:[
+    O('Publicar el informe completo','Transparencia total',D(4,4,0,0,0),'Publicaste todo. La honestidad fortaleció tu imagen.'),
+    O('Un resumen ejecutivo','Prudencia',D(2,1,0,0,0),'Publicaste un resumen. Hubo críticas, pero se calmó.'),
+    O('Guardarlo en un cajón','Riesgo de filtración',D(-3,-4,0,0,0),'Guardaste el informe. Alguien lo filtró.'),
+  ] },
+
+{ id:'cad_peña_ayuda', cat:'hinchada', jugador:null,
+  titulo:'Prometés estar con los hinchas',
+  contexto:'Una peña tradicional te invita a {EVENTO_PE} y espera que vayas.',
+  variables:{ EVENTO_PE:['su aniversario','una cena solidaria','un banderazo en el barrio'] },
+  opciones:[
+    O('Confirmar tu presencia','Compromiso',D(2,2,0,0,2),'Confirmaste. La peña se ilusionó.','peña_espera'),
+    O('Mandar a un representante','Distancia',D(0,-1,0,0,0),'Mandaste a un representante.'),
+    O('Declinar con respeto','Agenda llena',D(-1,0,0,0,0),'Declinaste. Entendieron, con poca gracia.'),
+  ] },
+{ id:'cad_peña_cobra', cat:'hinchada', jugador:null, requiere:'peña_espera',
+  titulo:'La peña te espera',
+  contexto:'Es el día del evento y {SITUACION_PE}. La peña está lista, con banderas y todo.',
+  variables:{ SITUACION_PE:['tenés una reunión que no podés mover','el técnico te necesita en el club','sobran compromisos de último momento'] },
+  opciones:[
+    O('Ir igual','Cumplís tu palabra',D(4,3,0,0,2),'Fuiste. La peña lo recordará siempre.'),
+    O('Ir un rato','Mitad de camino',D(2,1,0,0,0),'Fuiste un rato y saludaste a todos.'),
+    O('Faltar','Prioridades',D(-4,-3,0,0,-1),'Faltaste. Se sintió como una traición.'),
+  ] },
+
 ];
 
 /* ===================== Expansión ===================== */
