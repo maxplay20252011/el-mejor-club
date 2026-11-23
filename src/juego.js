@@ -384,6 +384,7 @@ function logros(){
   if(!fin && objetivo().cumplido) L.push(['🎯', 'Objetivo cumplido', 'Lograste la meta de la temporada.']);
   if(!fin && miPuesto(1) === 1) L.push(['🏆', 'Campeón', 'Terminaste primero en la tabla.']);
   if(!fin && zonaLiga(miPuesto(1)) === 'descenso') L.push(['🕳', 'Descenso', 'El club cerró en zona de descenso.']);
+  if(!fin && state.encadenados >= 2 && Object.keys(state.flags).length >= 3) L.push(['🤝', 'Dirigente de palabra', 'Tus promesas y acuerdos tuvieron consecuencias, y las afrontaste.']);
   if(state.encadenados >= 3) L.push(['🎲', 'Efecto dominó', 'Tus decisiones volvieron a buscarte 3 veces o más.']);
   return L;
 }
