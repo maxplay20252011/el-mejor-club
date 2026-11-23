@@ -108,6 +108,8 @@ h1{font-size:1.7rem;color:var(--gold);} h2{font-size:1.15rem;}
   #app[data-screen=formacion] .screen>.pitch{grid-column:1;grid-row:1/span 8;max-width:none;width:min(100%,calc((100vh - 60px)*.75));width:min(100%,calc((100dvh - 60px)*.75));}
 }
 @media (min-width:1500px){ html{font-size:18px;} #app[data-screen=mercado] .list,#app[data-screen=plantel] .list{grid-template-columns:repeat(3,1fr);} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.opt:focus-visible,.btn:focus-visible{outline:2px solid var(--gold,#d8b45a);outline-offset:2px}
 </style>
 </head>
 <body>
